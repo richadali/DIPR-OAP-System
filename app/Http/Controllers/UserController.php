@@ -14,6 +14,8 @@ use App\Models\AdCategory;
 use App\Models\AdvertisementType;
 use App\Models\Color;
 use App\Models\PageInfo;
+use App\Models\DepartmentCategory;
+use App\Models\NewsType;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -125,6 +127,8 @@ class UserController extends Controller
         $advertisementType = AdvertisementType::all();
         $color = Color::all();
         $page_info = PageInfo::all();
-        return view('modules.user.advertisement')->with(compact('role', 'newspapers', 'subjects', 'categories', 'advertisementType', 'color', 'page_info'));
+        $department_categories = DepartmentCategory::all();
+        $newspaper_types = NewsType::all();
+        return view('modules.user.advertisement')->with(compact('role', 'newspapers', 'subjects', 'categories', 'advertisementType', 'color', 'page_info','department_categories','newspaper_types'));
     }
 }

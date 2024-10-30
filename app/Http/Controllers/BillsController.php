@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBillRequest;
 use App\Models\Advertisement;
 use App\Models\Amount;
 use App\Models\Bill;
+use App\Models\GstRate;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -18,41 +19,60 @@ class BillsController extends Controller
     {
         $role   = Auth::user()->role->role_name;
         $user = Auth::user();
+        $gstRates = GstRate::all();
         // $advertisements = Advertisement::with(['assigned_news.empanelled'])->where('user_id', $user->id)->get();
         $advertisementsQuery = Advertisement::with(['assigned_news.empanelled']);
         if ($role !== 'Admin') {
             $advertisementsQuery->where('user_id', $user->id);
         }
         $advertisements = $advertisementsQuery->get();
-        return view('modules.bills.bills')->with(compact('role', 'advertisements'));
+        return view('modules.bills.bills')->with(compact('role', 'advertisements', 'gstRates'));
     }
     public function ViewContent(Request $request)
     {
-        $role   = Auth::user()->role->role_name;
+        $role = Auth::user()->role->role_name;
         $user = Auth::user();
-        $billsQuery  = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'b.paid_by')
+
+        $billsQuery  = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.issue_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
                 $join->on('an.advertisement_id', '=', 'a.id');
                 $join->on('an.empanelled_id', '=', 'b.empanelled_id');
             })
-            ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id');
+            ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
+            ->join('department as d', 'd.id', '=', 'a.department_id');
 
-        // Apply condition based on user role
         if ($role !== 'Admin') {
             $billsQuery->where('a.user_id', $user->id);
         }
+        $billsQuery->orderBy('b.created_at', 'desc');
 
-        // Execute the query
         $bills = $billsQuery->get();
 
+        // Transform the bills to separate rows for each newspaper
+        $result = [];
+        foreach ($bills as $bill) {
+            $newspaperNames = explode(', ', $bill->news_name); // Split newspapers by comma
+            foreach ($newspaperNames as $newspaperName) {
+                $result[] = [
+                    'id' => $bill->id,
+                    'dept_name' => $bill->dept_name,
+                    'news_name' => $newspaperName,
+                    'mipr_no' => $bill->mipr_no,
+                    'issue_date' => $bill->issue_date,
+                    'bill_no' => $bill->bill_no,
+                    'bill_date' => $bill->bill_date,
+                ];
+            }
+        }
 
-        return response()->json($bills)->withHeaders([
+        return response()->json($result)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
             'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
         ]);
     }
+
 
     public function getDeptLetterNo(Request $request)
     {
@@ -60,9 +80,9 @@ class BillsController extends Controller
         $advertisement = Advertisement::find($adId);
 
         if ($advertisement) {
-            return response()->json(['dept_letter_no' => $advertisement->dept_letter_no]);
+            return response()->json(['ref_no' => $advertisement->dept_letter_no]);
         } else {
-            return response()->json(['dept_letter_no' => null], 404);
+            return response()->json(['ref_no' => null], 404);
         }
     }
 
@@ -111,7 +131,6 @@ class BillsController extends Controller
                         Bill::whereId($request->id)->update([
                             'bill_no' => ($request->bill_no),
                             'bill_date' => ($request->bill_date),
-                            'paid_by' => ($request->paid_by),
                             'user_id' => $user->id
                         ]);
                         DB::commit();
@@ -130,10 +149,18 @@ class BillsController extends Controller
                     $bill->bill_no = $request->bill_no;
                     $bill->bill_date = $request->bill_date;
                     $bill->ad_id = $request->ad_id;
-                    $bill->paid_by = $request->paid_by;
                     $bill->empanelled_id = $request->empanelled_id;
+                    $bill->bill_memo_no = $request->bill_memo_no;
+                    // Check if GST rate is "NA"
+                    if ($request->gst_rate === 'NA') {
+                        $bill->gst_rate = null;
+                    } else {
+                        $bill->gst_rate = $request->gst_rate;
+                    }
                     $bill->user_id = $user->id;
                     $bill->save();
+
+                    Advertisement::where('id', $request->ad_id)->update(['status' => 'Billed']);
 
                     DB::commit();
                     return response()->json(["flag" => "Y"]);
@@ -148,7 +175,9 @@ class BillsController extends Controller
     public function ShowData(Request $request)
     {
         $user = Auth::user();
-        $bills = Bill::with('advertisement')
+        $bills = Bill::with(['advertisement' => function ($query) {
+            $query->select('id', 'amount', 'ref_no');
+        }])
             ->where('bills.id', '=', $request->id)
             ->where('bills.user_id', $user->id)
             ->get();
@@ -170,14 +199,13 @@ class BillsController extends Controller
 
     public function getAmount(Request $request)
     {
-        $size = $request->size;
-        $category = $request->category;
+        $adId = $request->ad_id;
+        $advertisement = Advertisement::find($adId);
 
-        $amount = Amount::select('amount')
-            ->where('ad_category_id', $category)
-            ->get();
-
-        $total_amount = $amount[0]->amount * $size;
-        return response($total_amount);
+        if ($advertisement) {
+            return response()->json(['amount' => $advertisement->amount]);
+        } else {
+            return response()->json(['amount' => null], 404);
+        }
     }
 }

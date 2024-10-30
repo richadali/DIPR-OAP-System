@@ -2,6 +2,209 @@
 
 @section('content')
 
+<style>
+  .badge {
+    min-width: 80px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-radius: 15px;
+  }
+
+  .readonly-input {
+    background-color: #f0f0f0;
+    color: #000;
+  }
+
+  .readonly-input:focus {
+    background-color: #e0e0e0;
+    color: #000;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  /* The switch - the box around the slider */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 34px;
+    height: 20px;
+  }
+
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+  }
+
+  input:checked+.slider {
+    background-color: #2196F3;
+  }
+
+  input:checked+.slider:before {
+    transform: translateX(14px);
+  }
+
+  .container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .progressbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    counter-reset: step;
+    padding: 0;
+    margin: 20px 0;
+    width: 100%;
+  }
+
+  .progressbar li {
+    list-style: none;
+    position: relative;
+    text-align: center;
+    cursor: pointer;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .progressbar li:before {
+    content: counter(step);
+    counter-increment: step;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    z-index: 1;
+  }
+
+  /* Line between each step */
+  .progressbar li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(15px);
+    /* Adjusts for circle width */
+    width: calc(100% - 30px);
+    /* Adjusts for spacing between circles */
+    height: 2px;
+    background-color: #ddd;
+    /* Default color */
+    z-index: 0;
+  }
+
+  /* Active step */
+  .progressbar li.active {
+    color: green;
+  }
+
+  .progressbar li.active:before {
+    border-color: green;
+    background-color: green;
+    color: white;
+  }
+
+  /* Reset the line after the last active step to gray */
+  .progressbar li.active+li::after {
+    background-color: #ddd;
+    /* Reset line color */
+  }
+</style>
+
+<div class="modal fade" id="advertisementDetailsModal" tabindex="-1" aria-labelledby="advertisementModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="advertisementModalLabel">Advertisement Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Status:</strong> <span id="detailsModalStatus"></span></p>
+
+        <!-- Progress bar -->
+        <div class="container">
+          <ul class="progressbar">
+            <li>Created</li>
+            <li>Published</li>
+            <li>Billed</li>
+
+          </ul>
+        </div>
+
+        <div id="cancellationReasonContainer" style="display: none; margin-top: 15px;">
+          <p><strong>Cancellation Reason:</strong> <span id="cancellationReason"></span></p>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Issue Date:</strong> <span id="detailsModalIssueDate"></span></p>
+            <p><strong>MIPR No:</strong> <span id="detailsModalMiprNo"></span></p>
+            <p><strong>Department:</strong> <span id="detailsModalDepartment"></span></p>
+            <p><strong>Advertisement Type:</strong> <span id="detailsModalAdvertisementType"></span></p>
+            <p><strong>Newspapers:</strong> <span id="detailsModalNewspapers"></span></p>
+            <p><strong>Amount:</strong> <span id="detailsModalAmount"></span></p>
+            <p><strong>Reference No:</strong> <span id="detailsModalRefNo"></span></p>
+            <p><strong>Reference Date:</strong> <span id="detailsModalRefDate"></span></p>
+          </div>
+
+          <div class="col-md-6">
+            <p><strong>Payment By:</strong> <span id="detailsModalPaymentBy"></span></p>
+            <p><strong>Number of Entries:</strong> <span id="detailsModalInsertions"></span></p>
+            <p><strong>Release Order No:</strong> <span id="detailsModalReleaseOrderNo"></span></p>
+            <p><strong>Release Order Date:</strong> <span id="detailsModalReleaseOrderDate"></span></p>
+            <p><strong>CM:</strong> <span id="detailsModalCM"></span></p>
+            <p><strong>Columns:</strong> <span id="detailsModalColumns"></span></p>
+            <p><strong>Remarks:</strong> <span id="detailsModalRemarks"></span></p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 <main id="main" class="main">
 
@@ -12,6 +215,11 @@
         <li class="breadcrumb-item">Advertisement Management</li>
       </ol>
     </nav>
+    <div class="col-md-12 text-end">
+      <span id="mipr-number" class="text-secondary">
+        <h5>Last Issued MIPR No: <b><span id="mipr-last">Fetching...</span></b></h5>
+      </span>
+    </div>
   </div><!-- End Page Title -->
   <section class="section">
     <div class="row">
@@ -46,13 +254,14 @@
                   <thead>
                     <tr>
                       <th class="text-center" scope="col" width="5%">#</th>
-                      <th class="text-center" scope="col" width="15%">Date of Issue</th>
-                      <th class="text-center" scope="col" width="15%">Department Name</th>
-                      <th class="text-center" scope="col" width="10%">Type</th>
-                      <th class="text-center" scope="col" width="15%">Issued Newspaper</th>
-                      <th class="text-center" scope="col" width="10%">Amount (₹)</th>
-                      <th class="text-center" scope="col" width="10%">Actions</th>
-                      <th class="text-center" scope="col" width="10%">Release Order</th>
+                      <th class="text-center" scope="col" width="15%">Issued On</th>
+                      <th class="text-center" scope="col" width="15%">MIPR No</th>
+                      <th class="text-center" scope="col" width="15%">Department</th>
+                      <th class="text-center" scope="col" width="10%">Amount</th>
+                      <th class="text-center" scope="col" width="15%">Actions</th>
+                      <th class="text-center" scope="col" width="5%">RO</th>
+                      <th class="text-center" scope="col" width="10%">Status</th>
+                      <th class="text-center" scope="col" width="5%">Published</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,14 +387,50 @@
 
                   <div class="col-md-6">
                     <label for="issue_date" class="form-label"><b>Date of Issue</b></label>
-                    <input type="text" class="form-control" id="issue_date" name="issue_date" maxlength="10" required>
+                    <input type="text" class="form-control" id="issue_date" name="issue_date" maxlength="10" required
+                      autocomplete="off">
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="department_category" class="form-label"><b>Department Category</b></label>
+                    <select id="department_category" name="department_category" class="form-control" required>
+                      <option value="" disabled selected>--Select Dept Category--</option>
+                      @foreach ($department_categories as $category)
+                      <option value="{{ $category->id }}">{{ $category->category_name }}</option>
+                      @endforeach
+                    </select>
                   </div>
 
                   <div class="col-md-6">
                     <label for="department" class="form-label"><b>Department</b></label>
-                    <input type="text" class="form-control" id="department" name="department" required
-                      autocomplete='off'>
+                    <select id="department" name="department" class="form-control select2" required>
+                    </select>
                   </div>
+
+                  <div class="col-md-6">
+                    <label for="newspaper_type" class="form-label"><b>Media Type</b></label>
+                    <select id="newspaper_type" name="newspaper_type" class="form-control" required>
+                      <option value="" disabled selected>--Select Media Type--</option>
+                      @foreach ($newspaper_types as $type)
+                      <option value="{{ $type->id }}">{{ $type->news_type }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="newspaper" class="form-label"><b>Organization(s)</b>
+                      <small class="text-muted d-block mt-1">
+                        (Number next to each organization shows total ads allotted in past 7 days)
+                      </small></label>
+                    <div>
+                      <select name="newspaper[]" id="newspaper" class="form-control select2" multiple
+                        data-placeholder="Select Organization">
+                        <option value="select-all">-Select All-</option> <!-- Select All option -->
+                        <!-- Other options will be populated via Ajax -->
+                      </select>
+                    </div>
+                  </div>
+
 
                   {{-- Rate Calculation --}}
                   <div id="printcalculation" style="display: none;">
@@ -216,27 +461,23 @@
                     <input id="seconds" type="text" class="form-control" name="seconds" required autocomplete="off">
                   </div>
 
-                  {{-- <div class="col-md-6">
-                    <label for="size" class="form-label"><b>Size</b></label>
-                    <input id="size" type="text" class="form-control" name="size" required autocomplete="off">
-                  </div> --}}
 
-                  <div class="col-md-6">
-                    <label for="base_amount" class="form-label"><b>Amount</b></label>
-                    <input id="base_amount" type="text" class="form-control" name="base_amount" disabled required readonly>
+                  <div class="col-md-6" id="amountContainer" style="display:block;">
+                    <label for="amount" class="form-label"><b>Amount</b></label>
+                    <input id="amount" type="text" class="form-control readonly-input" name="amount" required>
                   </div>
 
                   <div class="col-md-6">
-                    <label for="gst_rate" class="form-label"><b>GST (%)</b></label>
-                    <input id="gst_rate" type="text" class="form-control" name="gst_rate" disabled required readonly>
+                    <label for="payment_by" class="form-label"><b>Payment By</b></label>
+                    <div>
+                      <select name="payment_by" id="payment_by" class="form-control" data-placeholder="Select">
+                        <option value="" disabled selected>--Select Department--</option>
+                        <option value="D">DIPR</option>
+                        <option value="C">Concerned Department</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div class="col-md-6">
-                    <label for="amount" class="form-label"><b>Grand Total</b></label>
-                    <input id="amount" type="text" class="form-control" name="amount" disabled required required>
-                  </div>
-
-                  
                   <div class="col-md-6" id="subjectContainer" style="display:none">
                     <label for="subject" class="form-label"><b>Subject</b></label>
                     <div>
@@ -251,7 +492,13 @@
 
 
                   <div class="col-md-6">
-                    <label for="ref_no" class="form-label"><b>Reference No (MIPR No)</b></label>
+                    <label for="ref_no" class="form-label"><b>MIPR No</b></label>
+                    <input type="text" class="form-control readonly-input" id="mipr_no" name="mipr_no" required
+                      autocomplete='off' readonly>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="ref_no" class="form-label"><b>Reference No (Letter No)</b></label>
                     <input type="text" class="form-control" id="ref_no" name="ref_no" required autocomplete='off'>
                   </div>
 
@@ -271,22 +518,11 @@
 
                   <div class="col-md-6">
                     <label for="insertions" class="form-label" id="insertions-label"><b>No of issues</b></label>
-                    <input type="text" class="form-control" id="insertions" name="insertions" maxlength="10" required disabled
-                      autocomplete='off' readonly>
+                    <input type="text" class="form-control readonly-input" id="insertions" name="insertions"
+                      maxlength="10" required autocomplete='off' readonly>
                   </div>
 
-                  <div class="col-md-6">
-                    <label for="newspaper" class="form-label"><b>Newspaper(s)</b></label>
-                    <div>
-                      <select name="newspaper[]" id="newspaper" class="form-control select2" multiple
-                        data-placeholder="Select Newspaper">
-                        <!-- <option value="" disabled selected>Select Newspaper</option> -->
-                        @foreach($newspapers as $newspaper)
-                        <option value="{{ $newspaper->id }}">{{ $newspaper->news_name }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </div>
+
 
                   <div class="col-md-6" id="colorContainer" style="display:none">
                     <label for="color" class="form-label"><b>Color</b></label>
@@ -301,10 +537,10 @@
                   </div>
 
 
-                  <div class="col-md-6" id="pageInfoContainer" style="display:none">
+                  <div class="col-md-6" id="pageInfoContainer" style="display:none;">
                     <label for="page_info" class="form-label"><b>Page Information</b></label>
                     <div>
-                      <select name="page_info" id="page_info" class="form-control " data-placeholder="Select page info">
+                      <select name="page_info" id="page_info" class="form-control" data-placeholder="Select page info">
                         <option value="" disabled selected>--Select Page Info--</option>
                         @foreach($page_info as $type)
                         <option value="{{ $type->id }}">{{ $type->page_info_name }}</option>
@@ -312,25 +548,6 @@
                       </select>
                     </div>
                   </div>
-
-                  {{-- <div class="col-md-6">
-                    <label for="advertisementType" class="form-label"><b>Type</b></label>
-                    <div>
-                      <select name="advertisementType" id="advertisementType" class="form-control "
-                        data-placeholder="Select a subject">
-                        <option value="">--Select Advertisement Type--</option>
-                        @foreach($advertisementType as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </div> --}}
-
-                  <div class="col-md-6">
-                    <label for="letter_no" class="form-label"><b>Departmental Letter No</b></label>
-                    <input id="letter_no" type="text" class="form-control" name="letter_no" autocomplete='off' required>
-                  </div>
-
 
 
                   <div class="col-md-6">
@@ -372,8 +589,7 @@
               <p id="modalCmContainer" style="display: none;"><b>Cms:</b> <span id="modalCm"></span></p>
               <p id="modalColumnsContainer" style="display: none;"><b>Columns:</b> <span id="modalColumns"></span></p>
               <p id="modalSecondsContainer" style="display: none;"><b>Seconds:</b> <span id="modalSeconds"></span></p>
-              <p><b>Amount:</b> <span id="modalAmount"></span></p>
-              <p><b>Subject:</b> <span id="modalSubject"></span></p>
+              <p><b>Total Amount:</b> <span id="modalAmount"></span></p>
               <p><b>Reference No.:</b> <span id="modalRefNo"></span></p>
               <p><b>Reference Date:</b> <span id="modalRefDate"></span></p>
               <p><b>Positively On:</b> <span id="modalPositively"></span></p>
@@ -381,11 +597,6 @@
               <p><b>Newspaper(s):</b> <span id="modalNewspaper"></span></p>
               <p><b>Dept. Letter No:</b> <span id="modalLetterNo"></span></p>
               <p><b>Remarks:</b> <span id="modalRemarks"></span></p>
-
-              <!-- Add other form fields here -->
-
-              <!-- View Release Order Button -->
-              <!-- <a href="#" id="viewReleaseOrderBtn" class="btn btn-primary">View Release Order</a> -->
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Ok</button>
@@ -394,6 +605,8 @@
         </div>
       </div>
       <!--End of Modal -->
+
+
   </section>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
       class="bi bi-arrow-up-short"></i></a>

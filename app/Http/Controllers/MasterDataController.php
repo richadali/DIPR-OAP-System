@@ -19,6 +19,11 @@ use App\Http\Requests\StoreNewspaperRequest;
 use App\Http\Requests\StoreSubjectRequest;
 use App\Models\Color;
 use App\Models\PageInfo;
+use App\Models\MiprFileNo;
+use App\Models\DepartmentCategory;
+use App\Models\Department;
+use App\Models\GstRate;
+use App\Models\MiprNo;
 
 class MasterDataController extends Controller
 {
@@ -332,7 +337,7 @@ class MasterDataController extends Controller
                     DB::commit();
                     return response()->json(["flag" => "YY"]);
                 } catch (\Exception $e) {
-                    \Log::error($e->getMessage());
+                    Log::error($e->getMessage());
                     DB::rollback();
                     return response()->json(["flag" => "NN"]);
                 }
@@ -341,7 +346,9 @@ class MasterDataController extends Controller
                     DB::beginTransaction();
                     $amount = new Amount();
                     $amount->amount = $this->normalizeString($request->rate);
-                    $amount->ad_category_id = $this->normalizeString($request->ad_category);
+                    $amount->ad_category_id = !empty($request->ad_category)
+                        ? $this->normalizeString($request->ad_category)
+                        : null;
                     $amount->advertisement_type_id = $this->normalizeString($request->advertisementType);
                     $amount->save();
                     DB::commit();
@@ -357,7 +364,7 @@ class MasterDataController extends Controller
 
     public function ShowRatesData(Request $request)
     {
-        $sql = Amount::select('id', 'amount', 'ad_category_id', 'advertisement_type_id','gst_rate')
+        $sql = Amount::select('id', 'amount', 'ad_category_id', 'advertisement_type_id')
             ->where('id', $request->id)
             ->with(['adCategory', 'advertisementType'])
             ->get();
@@ -565,7 +572,7 @@ class MasterDataController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         } else {
-            if (isset($request->id)) { 
+            if (isset($request->id)) {
                 $pageinfoCount = PageInfo::where('id', $request->id)->count();
                 if ($pageinfoCount > 0) {
                     try {
@@ -582,7 +589,7 @@ class MasterDataController extends Controller
                 } else {
                     return response()->json(["flag" => "NN"]);
                 }
-            } else { 
+            } else {
                 try {
                     DB::beginTransaction();
                     $page_info = new PageInfo();
@@ -619,6 +626,448 @@ class MasterDataController extends Controller
         }
     }
 
+
+    // ----------MIPR NUMBER
+
+    public function miprNoIndex()
+    {
+        $role = Auth::user()->role->role_name;
+        $currentFinancialYear = $this->getCurrentFinancialYear();
+        $miprNo = MiprNo::where('fin_year', $currentFinancialYear)
+            ->get();
+        return view('modules.admin.mipr_no')->with(compact('role', 'miprNo'));
+    }
+
+    public function ViewMiprNo(Request $request)
+    {
+        $currentFinancialYear = $this->getCurrentFinancialYear();
+
+        $sql = MiprNo::where('fin_year', $currentFinancialYear)
+            ->get(['mipr_no', 'fin_year']); // Specify fields to avoid issues
+
+        return response()->json($sql)->withHeaders([
+            'Cache-Control' => 'max-age=15, public',
+            'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
+        ]);
+    }
+
+    public function StoreMiprNo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mipr_no' => 'required|string|max:4',
+            'fin_year' => 'required|string|max:9',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $finYear = $request->fin_year;
+        $miprNo = $request->mipr_no;
+
+        DB::beginTransaction();
+        try {
+            $existingMipr = DB::table('mipr_no')
+                ->where('fin_year', $finYear)
+                ->first();
+
+            if ($existingMipr) {
+                // Update existing MIPR number
+                DB::table('mipr_no')
+                    ->where('fin_year', $finYear)
+                    ->update(['mipr_no' => $miprNo]);
+                $flag = "YY";
+            } else {
+                // Create new MIPR number
+                DB::table('mipr_no')->insert([
+                    'mipr_no' => $miprNo,
+                    'fin_year' => $finYear
+                ]);
+                $flag = "Y";
+            }
+
+            DB::commit();
+            return response()->json(["flag" => $flag]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error in StoreMiprNo:', ['exception' => $e->getMessage()]);
+            return response()->json(["flag" => "NN"], 500);
+        }
+    }
+
+
+
+
+
+    public function ShowMiprNo(Request $request)
+    {
+        $currentFinancialYear = $this->getCurrentFinancialYear();
+
+        $sql = MiprNo::select('mipr_no', 'fin_year')
+            ->where('mipr_no', $request->mipr_no)
+            ->where('fin_year', $currentFinancialYear)
+            ->first();
+
+        if ($sql) {
+            return response()->json($sql);
+        } else {
+            return response()->json(['message' => 'Record not found'], 404);
+        }
+    }
+
+
+
+
+    // ----------MIPR FILE NUMBER
+
+    public function miprFileNoIndex()
+    {
+        $role = Auth::user()->role->role_name;
+        $miprFileNos = MiprFileNo::all();
+        return view('modules.admin.mipr_file_no')->with(compact('role', 'miprFileNos'));
+    }
+
+    public function ViewMiprFileNo(Request $request)
+    {
+        $sql = MiprFileNo::orderBy('mipr_file_no', 'desc')->get();
+        return response()->json($sql)->withHeaders([
+            'Cache-Control' => 'max-age=15, public',
+            'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
+        ]);
+    }
+
+    public function StoreMiprFileNo(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mipr_file_no' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            if (isset($request->id)) {
+                $sql_count = MiprFileNo::where('id', $request->id)->count();
+                if ($sql_count > 0) {
+                    try {
+                        DB::beginTransaction();
+                        MiprFileNo::whereId($request->id)->update([
+                            'mipr_file_no' => $request->mipr_file_no
+                        ]);
+                        DB::commit();
+                        return response()->json(["flag" => "YY"]);
+                    } catch (\Exception $e) {
+                        DB::rollback();
+                        return response()->json(["flag" => "NN"]);
+                    }
+                } else {
+                    return response()->json(["flag" => "NN"]);
+                }
+            } else { // Create new MIPR file number
+                try {
+                    DB::beginTransaction();
+                    $miprFileNo = new MiprFileNo();
+                    $miprFileNo->mipr_file_no = $request->mipr_file_no;
+                    $miprFileNo->save();
+                    DB::commit();
+                    return response()->json(["flag" => "Y"]);
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    return response()->json(["flag" => "N"]);
+                }
+            }
+        }
+    }
+
+    public function ShowMiprFileNo(Request $request)
+    {
+        $sql = MiprFileNo::select('id', 'mipr_file_no')
+            ->where('id', $request->id)
+            ->get();
+        return response()->json($sql);
+    }
+
+
+    // ----------DEPARTMENT CATEGORY MASTER DATA
+
+    public function departmentCategoryIndex()
+    {
+        $role = Auth::user()->role->role_name;
+        $department_categories = DepartmentCategory::all();
+        return view('modules.admin.department_category')->with(compact('role', 'department_categories'));
+    }
+
+    public function viewDepartmentCategoryData(Request $request)
+    {
+        $department_categories = DepartmentCategory::orderBy('category_name', 'desc')->get();
+        return response()->json($department_categories)->withHeaders([
+            'Cache-Control' => 'max-age=15, public',
+            'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
+        ]);
+    }
+
+
+    public function storeDepartmentCategoryData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'category_name' => 'required|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            if (isset($request->id)) {
+                $categoryCount = DepartmentCategory::where('id', $request->id)->count();
+                if ($categoryCount > 0) {
+                    try {
+                        DB::beginTransaction();
+                        DepartmentCategory::whereId($request->id)->update([
+                            'category_name' => $request->category_name
+                        ]);
+                        DB::commit();
+                        return response()->json(["flag" => "YY"]);
+                    } catch (\Exception $e) {
+                        DB::rollback();
+                        return response()->json(["flag" => "NN"]);
+                    }
+                } else {
+                    return response()->json(["flag" => "NN"]);
+                }
+            } else {
+                try {
+                    DB::beginTransaction();
+                    $department_category = new DepartmentCategory();
+                    $department_category->category_name = $request->category_name;
+                    $department_category->save();
+                    DB::commit();
+                    return response()->json(["flag" => "Y"]);
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    return response()->json(["flag" => "N"]);
+                }
+            }
+        }
+    }
+
+    public function showDepartmentCategoryData(Request $request)
+    {
+        $department_category = DepartmentCategory::select('id', 'category_name')
+            ->where('id', $request->id)
+            ->get();
+        return response()->json($department_category);
+    }
+
+    public function deleteDepartmentCategoryData(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            DepartmentCategory::where('id', $request->id)->delete();
+            DB::commit();
+            return response()->json(["flag" => "Y"]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(["flag" => "N"]);
+        }
+    }
+
+
+    //-------DEPARTMENT MASTER DATA
+
+    public function getDepartmentsByCategory(Request $request)
+    {
+        $category_id = $request->category_id;
+        $departments = Department::where('category_id', $category_id)
+            ->orderBy('dept_name', 'asc')
+            ->get();
+        return response()->json($departments);
+    }
+
+
+    public function departmentIndex()
+    {
+        $role = Auth::user()->role->role_name;
+        $departments = Department::all();
+        $department_categories = DepartmentCategory::all();
+        return view('modules.admin.department')->with(compact('role', 'departments', 'department_categories'));
+    }
+
+    public function viewDepartmentData(Request $request)
+    {
+        $departments = Department::with(['category'])->get();
+        return response()->json($departments)->withHeaders([
+            'Cache-Control' => 'max-age=15, public',
+            'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
+        ]);
+    }
+
+    public function storeDepartmentData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'dept_name' => 'required|string|max:255',
+            'category_id' => 'required|exists:department_category,id',
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning('Validation failed for storing department data', ['errors' => $validator->errors()]);
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            if (isset($request->id)) {
+                $departmentCount = Department::where('id', $request->id)->count();
+                if ($departmentCount > 0) {
+                    try {
+                        DB::beginTransaction();
+                        Department::whereId($request->id)->update([
+                            'dept_name' => $request->dept_name,
+                            'category_id' => $request->category_id,
+                        ]);
+                        DB::commit();
+                        return response()->json(["flag" => "YY"]);
+                    } catch (\Exception $e) {
+                        DB::rollback();
+                        Log::error('Failed to update department data', ['id' => $request->id, 'error' => $e->getMessage()]);
+                        return response()->json(["flag" => "NN"]);
+                    }
+                } else {
+                    Log::warning('Department not found for update', ['id' => $request->id]);
+                    return response()->json(["flag" => "NN"]);
+                }
+            } else {
+                try {
+                    DB::beginTransaction();
+                    $department = new Department();
+                    $department->dept_name = $request->dept_name;
+                    $department->category_id = $request->category_id;
+                    $department->save();
+                    DB::commit();
+                    return response()->json(["flag" => "Y"]);
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    Log::error('Failed to store new department data', ['error' => $e->getMessage()]);
+                    return response()->json(["flag" => "N"]);
+                }
+            }
+        }
+    }
+
+    public function showDepartmentData(Request $request)
+    {
+        $department = Department::select('id', 'dept_name', 'category_id')
+            ->where('id', $request->id)
+            ->get();
+        return response()->json($department);
+    }
+
+    public function deleteDepartmentData(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            Department::where('id', $request->id)->delete();
+            DB::commit();
+            return response()->json(["flag" => "Y"]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Failed to delete department data', ['id' => $request->id, 'error' => $e->getMessage()]);
+            return response()->json(["flag" => "N"]);
+        }
+    }
+
+
+
+    //-------GST-RATES MASTER DATA
+
+    public function gstRatesIndex()
+    {
+        $role = Auth::user()->role->role_name;
+        $gstRates = GstRate::all();
+        return view('modules.admin.gst_rates')->with(compact('role', 'gstRates'));
+    }
+
+
+    public function viewGstRatesData(Request $request)
+    {
+        $gstRates = GstRate::orderBy('rate', 'desc')->get();
+        return response()->json($gstRates)->withHeaders([
+            'Cache-Control' => 'max-age=15, public',
+            'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
+        ]);
+    }
+
+    public function storeGstRatesData(Request $request)
+    {
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'gst_rate' => 'required|numeric|min:0|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        } else {
+            if (isset($request->id)) {
+                // Edit an existing GST rate
+                $gstRateCount = GstRate::where('id', $request->id)->count();
+                if ($gstRateCount > 0) {
+                    try {
+                        DB::beginTransaction();
+                        GstRate::whereId($request->id)->update([
+                            'rate' => $request->gst_rate,
+                        ]);
+                        DB::commit();
+                        return response()->json(["flag" => "YY"]);
+                    } catch (\Exception $e) {
+                        DB::rollback();
+                        return response()->json(["flag" => "NN"]);
+                    }
+                } else {
+                    return response()->json(["flag" => "NN"]);
+                }
+            } else {
+                // Create a new GST rate
+                try {
+                    DB::beginTransaction();
+                    $gstRate = new GstRate();
+                    $gstRate->rate = $request->gst_rate;
+                    $gstRate->save();
+                    DB::commit();
+                    return response()->json(["flag" => "Y"]);
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    return response()->json(["flag" => "N"]);
+                }
+            }
+        }
+    }
+
+    public function showGstRatesData(Request $request)
+    {
+        $gstRate = GstRate::select('id', 'rate')
+            ->where('id', $request->id)
+            ->get();
+        return response()->json($gstRate);
+    }
+
+    public function deleteGstRatesData(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            GstRate::where('id', $request->id)->delete();
+            DB::commit();
+            return response()->json(["flag" => "Y"]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(["flag" => "N"]);
+        }
+    }
+
+
+
+
+    public function getCurrentFinancialYear()
+    {
+        $currentMonth = date('n');
+        $currentYear = date('Y');
+        $financialYearStart = ($currentMonth >= 4) ? $currentYear : ($currentYear - 1);
+        $financialYearEnd = $financialYearStart + 1;
+        return $financialYearStart . '-' . $financialYearEnd;
+    }
 
     public function normalizeString($str)
     {

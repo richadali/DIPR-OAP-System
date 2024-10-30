@@ -2,18 +2,19 @@ $(document).ready(function () {
     $(".select2").select2();
 
     $(document).on("click", "#users-tab", function (e) {
+        $("#bill-form").trigger("reset");
         $("#id").val("");
     });
 
-    $("#paid_by").on("change", function () {
-        if ($(this).val() == "O") {
-            $("#manual_payment_head").show();
-            $("#manual_paid_by").attr("required", "required");
-        } else {
-            $("#manual_payment_head").hide();
-            $("#manual_paid_by").removeAttr("required");
-        }
-    });
+    // $("#paid_by").on("change", function () {
+    //     if ($(this).val() == "O") {
+    //         $("#manual_payment_head").show();
+    //         $("#manual_paid_by").attr("required", "required");
+    //     } else {
+    //         $("#manual_payment_head").hide();
+    //         $("#manual_paid_by").removeAttr("required");
+    //     }
+    // });
 
     $(document).ready(function () {
         $("#bill_date").datepicker({
@@ -43,14 +44,17 @@ $(document).ready(function () {
             var table = "";
             $(".bill-table tbody").empty();
             $.each(response, function (indexInArray, bill) {
-                if (bill.paid_by != "D") {
+                var f = "";
+                if (bill.payment_by != "D") {
                     f =
                         '<a href="/reports/forwarding_letter/' +
                         bill.id +
+                        "?newspaper=" +
+                        encodeURIComponent(bill.news_name) +
                         '" style="color: black; font-size: 20px;" data-id="' +
                         bill.id +
                         '" class="icon ri-download-fill release_order" target="_blank"></a>';
-                } else f = "";
+                }
 
                 var billDate = formatDate(bill.bill_date);
                 table +=
@@ -59,18 +63,18 @@ $(document).ready(function () {
                     (indexInArray + 1) +
                     "</td>" +
                     '<td class="text-center">' +
-                    bill.hod +
-                    "</td>" +
-                    '<td class="text-center" >' +
-                    bill.news_name +
+                    bill.mipr_no +
                     "</td>" +
                     '<td class="text-center">' +
-                    bill.release_order_no +
+                    bill.dept_name +
+                    "</td>" +
+                    '<td class="text-center">' +
+                    bill.news_name + // Each newspaper will now be a separate row
                     "</td>" +
                     '<td class="text-center">' +
                     bill.bill_no +
                     "</td>" +
-                    '<td class="text-center" >' +
+                    '<td class="text-center">' +
                     billDate +
                     "</td>";
 
@@ -110,6 +114,7 @@ $(document).ready(function () {
     $("#ad_id").on("change", function () {
         getNewspaper();
         getDeptLetterNo();
+        getAmount();
     });
 
     function getDeptLetterNo() {
@@ -127,6 +132,21 @@ $(document).ready(function () {
         });
     }
 
+    function getAmount() {
+        var ad_id = $("#ad_id").val();
+
+        $.ajax({
+            type: "POST",
+            url: "/bill-get-amount",
+            data: {
+                ad_id: ad_id,
+            },
+            success: function (response) {
+                $("#amount").val(response.amount);
+            },
+        });
+    }
+
     function getNewspaper() {
         var ad_id = $("#ad_id").val();
 
@@ -139,7 +159,7 @@ $(document).ready(function () {
             success: function (response) {
                 $("#empanelled_id").empty();
                 $("#empanelled_id").append(
-                    '<option value="" disabled selected>--Select newspaper--</option>'
+                    '<option value="" disabled selected>--Select Organization--</option>'
                 );
                 // Populate options with news_name from empanelled relationship
                 $.each(response.assigned_news, function (index, news) {
@@ -180,13 +200,35 @@ $(document).ready(function () {
         });
     });
 
+    console.log("Script Loaded"); // Check if this prints
+    const amountInput = document.getElementById("amount");
+    const gstRateSelect = document.getElementById("gst_rate");
+    const totalAmountInput = document.getElementById("total_amount");
+
+    function calculateTotalAmount() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const gstRate = gstRateSelect.value;
+
+        let totalAmount = amount;
+        if (gstRate && gstRate !== "NA") {
+            const gstPercentage = parseFloat(gstRate) || 0;
+            totalAmount += (amount * gstPercentage) / 100;
+        }
+
+        totalAmountInput.value = totalAmount.toFixed(2);
+    }
+
+    // Add event listeners to trigger calculation
+    amountInput.addEventListener("input", calculateTotalAmount);
+    gstRateSelect.addEventListener("change", calculateTotalAmount);
+
     $("#bill-form").on("submit", function (e) {
         e.preventDefault();
         var formData = new FormData(this);
         // Add manual payment head to formData if "Others" is selected
-        if ($("#paid_by").val() == "O") {
-            formData.append("paid_by", $("#manual_paid_by").val());
-        }
+        // if ($("#paid_by").val() == "O") {
+        //     formData.append("paid_by", $("#manual_paid_by").val());
+        // }
         $.ajax({
             type: "POST",
             url: "/bill-store-data",
@@ -262,29 +304,17 @@ $(document).ready(function () {
                 $("#bill-form").trigger("reset");
                 $("#id").val(data[0]["id"]);
                 $("#bill_no").val(data[0]["bill_no"]);
+                $("#empanelled_id")
+                    .val(data[0]["empanelled_id"])
+                    .trigger("change");
                 $("#bill_date").val(formatDateFromDB(data[0]["bill_date"]));
-                $("#ad_id").val(data[0]["advertisement"]["id"]);
-                $("#dept_letter_no").val(
-                    data[0]["advertisement"]["dept_letter_no"]
-                );
-                // Populate paid_by dropdown
-                var paidByValue = data[0]["paid_by"];
-                $("#paid_by option")
-                    .filter(function () {
-                        return (
-                            $(this).val() === (paidByValue === "D" ? "D" : "O")
-                        );
-                    })
-                    .prop("selected", true);
-
-                // Check if paid_by is "Others", then set manual_paid_by input
-                if (paidByValue !== "D") {
-                    $("#manual_payment_head").show(); // Show the manual payment head input
-                    $("#manual_paid_by").val(data[0]["paid_by"]); // Populate with existing value
-                } else {
-                    $("#manual_payment_head").hide(); // Hide the manual payment head input
-                    $("#manual_paid_by").val(""); // Clear the input value if not "Others"
-                }
+                $("#ad_id")
+                    .val(data[0]["advertisement"]["id"])
+                    .trigger("change");
+                $("#bill_memo_no").val(data[0]["bill_memo_no"]);
+                $("#gst_rate").val(data[0]["gst_rate"]);
+                $("#amount").val(data[0]["advertisement"]["amount"]);
+                calculateTotalAmount();
                 $("#users-tab").tab("show");
             },
         });

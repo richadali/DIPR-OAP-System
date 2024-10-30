@@ -10,7 +10,7 @@ class Bill extends Model
     use HasFactory;
 
     protected $table = 'bills';
-    protected $fillable =['bill_no','bill_date','ad_id','paid_by'];
+    protected $fillable = ['bill_no', 'bill_date', 'ad_id', 'bill_memo_no', 'gst_rate'];
 
     public function advertisement()
     {
@@ -29,6 +29,6 @@ class Bill extends Model
 
     public function empanelled()
     {
-        return $this->belongsTo(Empanelled::class,'empanelled_id');
+        return $this->belongsTo(Empanelled::class, 'empanelled_id');
     }
 }

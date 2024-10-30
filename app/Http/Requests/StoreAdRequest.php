@@ -23,7 +23,8 @@ class StoreAdRequest extends FormRequest
             'remarks' => 'nullable|string',
             'color' => 'nullable',
             'page_info' => 'nullable',
-            'letter_no' => 'required',
+            'payment_by' => 'required|alpha|size:1',
+            'mipr_no' => 'required|string|max:255',
         ];
     }
 

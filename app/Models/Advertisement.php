@@ -17,7 +17,10 @@ class Advertisement extends Model
 
     protected $fillable = [
         'release_order_no',
-        'release_order_date'
+        'release_order_date',
+        'payment_by',
+        'department',
+        'mipr_no'
     ];
 
     public function user()
@@ -65,6 +68,11 @@ class Advertisement extends Model
         return $this->hasOne(ReleaseOrderNo::class);
     }
 
+    public function mipr_no()
+    {
+        return $this->hasOne(MiprNo::class);
+    }
+
     public function color()
     {
         return $this->belongsTo(Color::class, 'color_id');
@@ -74,4 +82,5 @@ class Advertisement extends Model
     {
         return $this->belongsTo(PageInfo::class, 'page_info_id');
     }
+    
 }

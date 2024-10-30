@@ -57,17 +57,6 @@ $(document).ready(function () {
           "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
       },
     });
-    var issueRegisterTable  = $('.issueRegister-table').DataTable({               
-        destroy:true,
-        processing:true,
-        select:true,
-        paging:true,
-        lengthChange:true,
-        searching:true,
-        info:false,
-        responsive:true,
-        autoWidth:false,
-    });
   
     $.ajax({
       type: "POST",
@@ -89,13 +78,24 @@ $(document).ready(function () {
             else
                 remarks = advertisement.remarks;
             table += '<tr>'+
-               '<td class="text-center">'+ (indexInArray+1)+ '</td>'+
+               '<td class="text-center">'+ (advertisement.mipr_no)+ '</td>'+
                '<td class="text-center">'+ issueDate + '</td>'+
-               '<td class="text-center">'+ advertisement.hod+ '</td>'+
+               '<td class="text-center">'+ advertisement.department.dept_name+ '</td>'+
                '<td class="text-center">'+ advertisement.ref_no + ' Dt. '+ ref_date +'</td>'+
                '<td class="text-center">'+ remarks + '</td></tr>';
           });
             $(".issueRegister-table tbody").append(table);
+            $('.issueRegister-table').DataTable({               
+                destroy:true,
+                processing:true,
+                select:true,
+                paging:true,
+                lengthChange:true,
+                searching:true,
+                info:false,
+                responsive:true,
+                autoWidth:false,
+            });
            
         }
       });
@@ -173,9 +173,9 @@ $(document).ready(function () {
           else
               remarks = advertisement.remarks;
             var newRow = $('<tr>').append(
-                $('<td class="text-center">').text(indexInArray + 1),
+                $('<td class="text-center">').text(advertisement.mipr_no),
                 $('<td class="text-center">').text(issueDate),
-                $('<td class="text-center">').text(advertisement.hod),
+                $('<td class="text-center">').text(advertisement.department.dept_name),
                 $('<td class="text-center">').text(advertisement.ref_no + ' Dt. ' + ref_date),
                 $('<td class="text-center">').text(remarks)
             );

@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
 use App\Models\Advertisement;
+use App\Models\Amount;
 use App\Models\Bill;
+use App\Models\Department;
+use App\Models\DepartmentCategory;
+use App\Models\Empanelled;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ReleaseOrderNo;
+use App\Models\MiprFileNo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -26,7 +31,7 @@ class ReportsController extends Controller
         $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
         $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
 
-        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type'])
+        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department'])
             ->whereBetween('advertisement.issue_date', [$fromDate, $toDate])
             ->orderBy('advertisement.id')
             ->get();
@@ -41,7 +46,7 @@ class ReportsController extends Controller
 
     public function ViewIssueRegister()
     {
-        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type'])->get();
+        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department'])->get();
 
         return response()->json($advertisements)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
@@ -57,7 +62,7 @@ class ReportsController extends Controller
         $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
 
 
-        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'subject'])
+        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'subject', 'department'])
             ->whereBetween('advertisement.issue_date', [$fromDate, $toDate])
             ->get();
 
@@ -67,19 +72,21 @@ class ReportsController extends Controller
         ]);
     }
 
-    //BILLING REGISTER
+    // BILLING REGISTER
     public function indexBillingRegister()
     {
-        $role   = Auth::user()->role->role_name;
-        return view('modules/reports/billing_register')->with(compact('role'));
+        $role = Auth::user()->role->role_name;
+        $departments = Department::all();
+        $newspapers = Empanelled::all();
+        return view('modules/reports/billing_register')->with(compact('role', 'newspapers', 'departments'));
     }
 
-    public function printBillingRegister(Request $request, $from, $to)
+    public function printBillingRegister(Request $request)
     {
-        $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
-        $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
 
-        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'b.paid_by')
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -87,15 +94,23 @@ class ReportsController extends Controller
                 $join->on('an.empanelled_id', '=', 'b.empanelled_id');
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
-            ->whereBetween('b.bill_date', [$fromDate, $toDate])
-            ->where('b.paid_by', 'D')
+            ->join('department as d', 'd.id', '=', 'a.department_id')
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('a.department_id', $departmentId);
+            })
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('b.empanelled_id', $newspaperId);
+            })
+            ->where('a.payment_by', 'D')
             ->orderBy('b.bill_date')
             ->get();
+
         foreach ($bills as $bill) {
             $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
             $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date);
             $bill->amount = number_format($bill->amount, 2);
         }
+
         $pdf = PDF::loadView('reports.billing_register', compact('bills'));
 
         return $pdf->stream('billing_register.pdf', array('Attachment' => 0));
@@ -103,7 +118,10 @@ class ReportsController extends Controller
 
     public function ViewBillingRegister()
     {
-        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'b.paid_by')
+        $departmentId = request()->input('department_id');
+        $newspaperId = request()->input('newspaper_id');
+
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.release_order_no')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -111,28 +129,47 @@ class ReportsController extends Controller
                 $join->on('an.empanelled_id', '=', 'b.empanelled_id');
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
-            ->where('b.paid_by', 'D')
+            ->join('department as d', 'd.id', '=', 'a.department_id')
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('a.department_id', $departmentId);
+            })
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('b.empanelled_id', $newspaperId);
+            })
+            ->where('a.payment_by', 'D')
             ->get();
+
         foreach ($bills as $bill) {
             $bill->amount = number_format($bill->amount, 2);
         }
+
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
             'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
         ]);
     }
+
     public function GetBillingRegister(Request $request)
     {
-        $from = $request->from;
-        $to = $request->to;
-        $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
-        $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
-
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
 
         $bills = Bill::with(['advertisement.assigned_news.empanelled'])
-            ->whereBetween('bills.bill_date', [$fromDate, $toDate])
-            ->where('bills.paid_by', 'D')
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->whereHas('advertisement', function ($query) use ($departmentId) {
+                    $query->where('department_id', $departmentId);
+                });
+            })
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->whereHas('advertisement.assigned_news', function ($query) use ($newspaperId) {
+                    $query->where('empanelled_id', $newspaperId);
+                });
+            })
+            ->whereHas('advertisement', function ($query) {
+                $query->where('payment_by', 'D');
+            })
             ->get();
+
 
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
@@ -176,7 +213,7 @@ class ReportsController extends Controller
 
     public function ViewNonDIPRRegister()
     {
-        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date','a.amount', 'b.paid_by')
+        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'b.paid_by')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -258,6 +295,7 @@ class ReportsController extends Controller
         $fin_year = $this->getCurrentFinancialYear();
         $advertisement = Advertisement::findOrFail($id);
         DB::beginTransaction();
+
         try {
             // Check if a row exists for the current financial year
             $releaseOrderRow = ReleaseOrderNo::where('fin_year', $fin_year)->first();
@@ -291,13 +329,19 @@ class ReportsController extends Controller
                 }
             }
 
-            // Load advertisement with related data
             $advertisement = Advertisement::with(['subject', 'assigned_news.empanelled', 'ad_category'])->find($id);
+
+            // Fetch the latest MIPR file number
+            $miprFileNo = MiprFileNo::latest()->first();
+
+            // Fetch the amount from the `amount` table based on the advertisement type
+            $amount = Amount::where('advertisement_type_id', $advertisement->advertisement_type_id)->value('amount');
+
             DB::commit();
 
-            // Generate PDF
-            $pdf = PDF::loadView('reports.release_order', compact('advertisement'));
-            $pdfFileName = 'Release_Order_' . $advertisement->id . '.pdf';
+            // Generate PDF and pass amount to view
+            $pdf = PDF::loadView('reports.release_order', compact('advertisement', 'miprFileNo', 'amount'));
+            $pdfFileName = 'Release_Order_MIPR_' . $advertisement->mipr_no . '.pdf';
             return $pdf->stream($pdfFileName, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"']);
         } catch (\Throwable $th) {
             DB::rollback();
@@ -308,19 +352,28 @@ class ReportsController extends Controller
 
 
 
-
-
     public function forwardingLetter($id)
     {
+        $newspaperName = request()->query('newspaper');
         $bill = Bill::with(['advertisement'])->find($id);
+
 
         $bill->advertisement->ref_date = Carbon::parse($bill->advertisement->ref_date);
         $bill->bill_date = Carbon::parse($bill->bill_date);
-        $words = $this->NumberToWords($bill->advertisement->amount);
 
-        $pdf = PDF::loadView('reports.forwarding_letter', compact('bill', 'words'));
+        $totalAmountWithGST = $bill->advertisement->amount * (1 + $bill->gst_rate / 100);
+        $words = $this->NumberToWords((int)$totalAmountWithGST);
+
+
+        $miprFileNo = MiprFileNo::latest()->first();
+
+        $pdf = PDF::loadView('reports.forwarding_letter', compact('bill', 'words', 'miprFileNo', 'newspaperName', 'totalAmountWithGST'));
         $pdfFileName = 'Forwarding_Letter' . $bill->id . '.pdf';
-        return $pdf->stream($pdfFileName, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"']);
+
+        return $pdf->stream($pdfFileName, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
+        ]);
     }
     public function getCurrentFinancialYear()
     {
@@ -343,11 +396,33 @@ class ReportsController extends Controller
         }
 
         $nwords = array(
-            "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven",
-            "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen",
-            "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen",
-            "Nineteen", "Twenty", 30 => "Thirty", 40 => "Forty",
-            50 => "Fifty", 60 => "Sixty", 70 => "Seventy", 80 => "Eighty",
+            "Zero",
+            "One",
+            "Two",
+            "Three",
+            "Four",
+            "Five",
+            "Six",
+            "Seven",
+            "Eight",
+            "Nine",
+            "Ten",
+            "Eleven",
+            "Twelve",
+            "Thirteen",
+            "Fourteen",
+            "Fifteen",
+            "Sixteen",
+            "Seventeen",
+            "Eighteen",
+            "Nineteen",
+            "Twenty",
+            30 => "Thirty",
+            40 => "Forty",
+            50 => "Fifty",
+            60 => "Sixty",
+            70 => "Seventy",
+            80 => "Eighty",
             90 => "Ninety"
         );
 

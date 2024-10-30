@@ -1,87 +1,86 @@
 @extends('layouts.app_1')
 
 @section('content')
+
 <main id="main" class="main">
 
-<div class="pagetitle">
-  <h1>Home</h1>
-</div><!-- End Page Title -->
+  <div class="pagetitle">
+    <h1>Home</h1>
+  </div><!-- End Page Title -->
 
-<section class="section dashboard">
-  <div class="row">
+  <section class="section dashboard">
+    <div class="row">
 
-    <!-- Left side columns -->
-    <div class="col-lg-12">
-      <div class="row">
+      <!-- Left side columns -->
+      <div class="col-lg-12">
+        <div class="row">
 
-        <!-- Sales Card -->
-        <div class="col-xxl-4">
-          <div class="card info-card sales-card">
-            <div class="card-body">
-              <h5 class="card-title">Total Advertisements </h5>
-
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-newspaper"></i>
-                </div>
-                <div class="ps-3">
-                  <h6>{{ $advertisements }}</h6>
-
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div><!-- End Sales Card -->
-
-        <!-- Revenue Card -->
-        <div class="col-xxl-4">
-          <div class="card info-card revenue-card">
-            <div class="card-body">
-              <h5 class="card-title">Total Bills </h5>
-
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-cash"></i>
-                </div>
-                <div class="ps-3">
-                  <h6>{{$bills}}</h6>
+          <!-- Sales Card -->
+          <div class="row d-flex align-items-stretch">
+            <div class="col-xxl-4">
+              <div class="card info-card sales-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Advertisements</h5>
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-newspaper"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ $advertisements }}</h6>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div><!-- End Revenue Card -->
+            </div><!-- End Sales Card -->
 
-        <!-- Customers Card -->
-        <div class="col-xxl-4">
-
-          <div class="card info-card customers-card">
-            <div class="card-body">
-              <h5 class="card-title">Total Departments this month</h5>
-
-              <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                  <i class="bi bi-people"></i>
-                </div>
-                <div class="ps-3">
-                  <h6>{{ $hod }}</h6>
+            <div class="col-xxl-4">
+              <div class="card info-card revenue-card">
+                <div class="card-body">
+                  <h5 class="card-title">Total Bills</h5>
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-cash"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ $bills }}</h6>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div><!-- End Revenue Card -->
 
-            </div>
+            <div class="col-xxl-4">
+              <div class="card info-card newspapers-card">
+                <div class="card-body mb-0">
+                  <h5 class="card-title mb-0">Top 3 Most Used Organizations</h5>
+                  <ul id="newspapersList" class="list-unstyled mt-1 mb-0">
+                    @if($topNewspapers->isEmpty())
+                    <li>No organizations found.</li>
+                    @else
+                    @foreach($topNewspapers as $newspaper)
+                    <li class="small">
+                      <small>
+                        <strong>{{ $newspaper->news_name }}</strong> ({{ $newspaper->advertisement_count }})
+                      </small>
+                    </li>
+                    @endforeach
+                    @endif
+                  </ul>
+                </div>
+              </div>
+            </div><!-- End Customers Card -->
           </div>
 
-        </div><!-- End Customers Card -->
 
 
 
-    <!-- Right side columns -->
-    <!-- <div class="col-lg-4"> -->
+          <!-- Right side columns -->
+          <!-- <div class="col-lg-4"> -->
 
-   
 
-      <!-- Budget Report -->
-      <!-- <div class="card">
+
+          <!-- Budget Report -->
+          <!-- <div class="card">
         <div class="filter">
           <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
@@ -154,12 +153,12 @@
         </div>
       </div> -->
 
-          
 
-       
 
-    </div><!-- End Right side columns -->
-     <!-- <div class="col-lg-8">
+
+
+        </div><!-- End Right side columns -->
+        <!-- <div class="col-lg-8">
                     <div class="card">
                           <div class="card-body">
                           <h5 class="card-title">Newspapers</h5>
@@ -186,18 +185,19 @@
                     </div>                    
                     </div> -->
 
-                    <div class="col-lg-12">
-                      <div class="card">
-                        <div class="card-body">
-                          <h5 class="card-title">Newspapers Count</h5>
-                          <div id="newspaperChart" style="height: 400px;"></div>
-                        </div>
-                      </div>
-                    </div>
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Newspapers Count</h5>
+              <div id="newspaperChart" style="height: 400px;"></div>
+            </div>
+          </div>
+        </div>
 
-  </div>
-</section>
-<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+      </div>
+  </section>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
+      class="bi bi-arrow-up-short"></i></a>
 </main><!-- End #main -->
 @endsection
 <script>

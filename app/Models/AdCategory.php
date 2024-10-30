@@ -14,6 +14,7 @@ class AdCategory extends Model
     public function advertisement() 
     {
         return $this->hasMany(Advertisement::class);
+        return $this->belongsTo(DepartmentCategory::class, 'category_id');
     }
     public function amount()
     {

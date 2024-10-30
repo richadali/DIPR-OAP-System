@@ -15,7 +15,6 @@ class Amount extends Model
         'advertisement_type_id',
         'ad_category_id',
         'amount',
-        'gst_rate',
     ];
 
     public function adCategory()

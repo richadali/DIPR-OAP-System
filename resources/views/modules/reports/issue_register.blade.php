@@ -83,7 +83,7 @@
                 <table class="issueRegister-table" width="100%"> 
                 <thead>
                   <tr>
-                    <th class="text-center" scope="col" width="3%">#</th>
+                    <th class="text-center" scope="col" width="10%">Mipr No</th>
                     <th class="text-center" scope="col" width="20%">Date of Issue</th>
                     <th class="text-center" scope="col" width="40%">Name of Department Concerned</th>
                     <th class="text-center" scope="col" width="20%">Ref. No & Date</th>

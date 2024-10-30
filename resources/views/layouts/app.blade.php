@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>DIPR Dashboard</title>
+    <title>DIPR OAP System</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
 
@@ -30,11 +30,13 @@
   <link href="{{asset('assets/vendor/simple-datatables/style.css')}}" rel="stylesheet">
 
 
+
   <!-- Template Main CSS File -->
   <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+  <link href="{{ asset('assets/css/login.css') }}" rel="stylesheet">
   
 </head>
-<body>
+  <body class="custom-background">
     <div id="app">
           <main class="py-4">
             @yield('content')

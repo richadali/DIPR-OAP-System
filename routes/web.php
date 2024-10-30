@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdvertisementController;
 use App\Http\Controllers\BillsController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReportsController;
 
 Route::get('/', function () {
@@ -290,6 +291,134 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle')
         ->name('page-info-data');
 
+    // MASTER DATA MIPR-NO    
+
+    Route::get('/get-current-mipr', [AdvertisementController::class, 'getCurrentMIPRNo'])
+        ->name('get-current-mipr');
+
+    Route::get('/master-data/mipr-no', [MasterDataController::class, 'miprNoIndex'])
+        ->name('/master-data/mipr-no');
+
+    Route::post('mipr-no-view-data', [MasterDataController::class, 'ViewMiprNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-no-view-data');
+
+    Route::post('mipr-no-store-data', [MasterDataController::class, 'StoreMiprNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-no-store-data');
+
+    Route::post('mipr-no-show-data', [MasterDataController::class, 'ShowMiprNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-no-show-data');
+
+
+    // MASTER DATA MIPR-FILE-NO    
+
+    Route::get('/master-data/mipr-file-no', [MasterDataController::class, 'miprFileNoIndex'])
+        ->name('/master-data/mipr-file-no');
+
+    Route::post('mipr-file-no-view-data', [MasterDataController::class, 'ViewMiprFileNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-file-no-view-data');
+
+    Route::post('mipr-file-no-store-data', [MasterDataController::class, 'StoreMiprFileNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-file-no-store-data');
+
+    Route::post('mipr-file-no-show-data', [MasterDataController::class, 'ShowMiprFileNo'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('mipr-file-no-show-data');
+
+
+    // MASTER DATA DEPARTMENT CATEGORY
+    Route::get('/master-data/department-category', [MasterDataController::class, 'departmentCategoryIndex'])
+        ->name('/master-data/department-category');
+
+
+    Route::post('department-category-view-data', [MasterDataController::class, 'viewDepartmentCategoryData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-category-view-data');
+
+    Route::post('/department-category-store-data', [MasterDataController::class, 'storeDepartmentCategoryData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-category-store-data');
+
+    Route::post('department-category-show-data', [MasterDataController::class, 'showDepartmentCategoryData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-category-show-data');
+
+    Route::post('department-category-delete-data', [MasterDataController::class, 'deleteDepartmentCategoryData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-category-delete-data');
+
+
+    // MASTER DATA DEPARTMENTS
+
+    Route::post('/get-departments-by-category', [MasterDataController::class, 'getDepartmentsByCategory'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('get-departments-by-category');
+
+    Route::get('/master-data/departments', [MasterDataController::class, 'departmentIndex'])
+        ->name('/master-data/departments');
+
+    Route::post('/department-view-data', [MasterDataController::class, 'viewDepartmentData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-view-data');
+
+    Route::post('/department-store-data', [MasterDataController::class, 'storeDepartmentData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-store-data');
+
+    Route::post('/department-show-data', [MasterDataController::class, 'showDepartmentData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-show-data');
+
+    Route::post('/department-delete-data', [MasterDataController::class, 'deleteDepartmentData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('department-delete-data');
+
+
+    // MASTER DATA GST-RATES
+
+    Route::get('/master-data/gst-rates', [MasterDataController::class, 'gstRatesIndex'])
+        ->name('/master-data/gst-rates');
+
+    Route::post('/gst-rates-view-data', [MasterDataController::class, 'viewGstRatesData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('gst-rates-view-data');
+
+    Route::post('/gst-rates-store-data', [MasterDataController::class, 'storeGstRatesData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('gst-rates-store-data');
+
+    Route::post('/gst-rates-show-data', [MasterDataController::class, 'showGstRatesData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('gst-rates-show-data');
+
+    Route::post('/gst-rates-delete-data', [MasterDataController::class, 'deleteGstRatesData'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('gst-rates-delete-data');
+
+
 
     // ADVERTISEMENTS 
 
@@ -311,6 +440,13 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/advertisement-delete-data', [AdvertisementController::class, 'DeleteData'])
         ->name('deleteAdvertisement');
+
+    Route::post('/get-newspapers-by-type', [AdvertisementController::class, 'getNewspapersByType'])
+        ->name('get-newspapers-by-type');
+
+    Route::post('/update-advertisement-publish-status', [AdvertisementController::class, 'updateAdvertisementStatus']);
+
+    Route::get('/advertisement/{id}', [AdvertisementController::class, 'getAdvertisementDetails']);
 });
 
 Route::post('getAmount', [AdvertisementController::class, 'getAmount'])
@@ -346,6 +482,8 @@ Route::post('/bill-edit-data', [BillsController::class, 'ShowData'])
 
 Route::post('/bill-delete-data', [BillsController::class, 'DeleteData'])
     ->name('deleteBill');
+
+Route::post('/bill-get-amount', [BillsController::class, 'getAmount']);
 
 // REPORT ROUTES
 

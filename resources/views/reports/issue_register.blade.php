@@ -36,7 +36,7 @@
     <table>
         <thead>
             <tr>
-            <th width="5%">Sl. No</th>
+            <th width="10%">Mipr No</th>
                 <th width="9%">Date of Issue</th>
                 <th width="20%">Name of Department concerned</th>
                 <th width="18%">Ref. No & Date</th>
@@ -49,9 +49,9 @@
         <tbody>
             @foreach($advertisements as $advertisement)
             <tr>
-                <td align=center> {{ $advertisement->id }}</td>
+                <td align=center> {{ $advertisement->mipr_no }}</td>
                 <td align=center> {{ $advertisement->issue_date->format('d-m-Y') }}</td>
-                <td> {{ $advertisement->hod }}</td>
+                <td> {{ $advertisement->department->dept_name }}</td>
                 <td align=center class="long-text ref-no"> {{ $advertisement->ref_no . ' Dt. ' . $advertisement->ref_date }} </td>
                 <td align=center> {{ $advertisement->positively_on }}</td>
                 <td align=center> {{ $advertisement->no_of_entries }}</td>

@@ -29,6 +29,7 @@
   <link href="{{asset('assets/vendor/remixicon/remixicon.css')}}" rel="stylesheet">
   <link href="{{asset('assets/vendor/simple-datatables/style.css')}}" rel="stylesheet">
 
+
   <link href="https://cdn.datatables.net/1.13.2/css/jquery.dataTables.min.css" rel="stylesheet">
   <!-- Template Main CSS File -->
   <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
@@ -79,6 +80,9 @@
   <main class="py-4">
             @yield('content')
   </main>
+  @include('layouts.footer')
+
+
   <!-- Vendor JS Files -->
 </body>
 </html>

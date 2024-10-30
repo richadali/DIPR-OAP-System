@@ -8,9 +8,16 @@ use Illuminate\Database\Eloquent\Model;
 class Department extends Model
 {
     use HasFactory;
-    
+    protected $table = 'department';
+
+    // Define the relationship with the DepartmentCategory model
+    public function category()
+    {
+        return $this->belongsTo(DepartmentCategory::class, 'category_id');
+    }
     public function advertisement()
     {
-        $this->hasMany(Advertisement::class);
+        return $this->hasMany(Advertisement::class, 'department_id');
     }
+
 }

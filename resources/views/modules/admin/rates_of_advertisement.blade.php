@@ -48,7 +48,6 @@
                       <th class="text-center" scope="col" width="15%">Advertisement Type</th>
                       <th class="text-center" scope="col" width="15%">Advertisement Category</th>
                       <th class="text-center" scope="col" width="15%">Rate</th>
-                      <th class="text-center" scope="col" width="15%">GST</th>
 
                       <!-- <th class="text-center" scope="col" width="15%">Head Office/ Location</th>
                     <th class="text-center" scope="col" width="15%">Email</th>
@@ -160,20 +159,11 @@
 
                   <div class="col-md-6">
                     <label for="rate" class="form-label"><b>Rate</b></label>
+                    <span id="rateLabel" style="display: none;"><b>(inclusive of GST)</b></span>
                     <input type="text" class="form-control" id="rate" name="rate" required>
                   </div>
 
                   <div class="col-md-6" id="ad-category-container">
-                    <label for="gst_rate" class="form-label"><b>GST</b></label>
-                    <select name="gst_rate" id="gst_rate" class="form-control">
-                      <option value='' disabled selected>--Select GST Rate--</option>
-                      <option value="0.00">0</option>
-                      <option value="5.00">5%</option>
-                      <option value="12.00">12%</option>
-                      <option value="18.00">18%</option>
-                      <option value="28.00">28%</option>
-                      
-                    </select>
                     <input type="hidden" name="ad_category_hidden" id="ad_category_hidden">
                     <span id="error-rate" class="error-message"></span>
                   </div>
