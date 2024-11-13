@@ -190,7 +190,7 @@
                   <div class="col-md-6">
                     <label for="amount" class="form-label"><b>Amount</b></label>
                     <div>
-                      <input type="number" name="amount" id="amount" class="form-control readonly-input"
+                      <input type="text" name="amount" id="amount" class="form-control readonly-input"
                         data-placeholder="Amount" value="0" required>
                     </div>
                   </div>

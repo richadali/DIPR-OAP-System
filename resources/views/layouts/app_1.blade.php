@@ -2,15 +2,15 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>DIPR Dashboard</title>
-    <meta content="" name="description">
-    <meta content="" name="keywords">
+  <!-- CSRF Token -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DIPR Dashboard</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
 
   <!-- Favicons -->
   <link href="{{asset('assets/img/favicon.png')}}" rel="icon">
@@ -18,7 +18,9 @@
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i"
+    rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{{asset('assets/vendor/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
@@ -40,9 +42,10 @@
   <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.1.0/css/buttons.dataTables.min.css"> -->
 </head>
+
 <body>
   <!-- ======= Header ======= -->
-  <header id="header" class="header fixed-top d-flex align-items-center" >
+  <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="home" class="logo d-flex align-items-center">
@@ -52,15 +55,26 @@
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
-   
     <nav class="header-nav ms-auto">
       <ul class="d-flex align-items-center">
+        <!-- Display Username and Role -->
+        <li class="nav-item pe-3">
+          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#">
+            <span class="d-none d-md-block ps-2">
+              <!-- Display user's name and role from backend -->
+              Welcome, {{ auth()->user()->name }}
+              <small class="text-muted"> ({{auth()->user()->role->role_name }})</small>
+            </span>
+          </a>
+        </li>
+      </ul>
     </nav><!-- End Icons Navigation -->
 
-  </header><!-- End Header -->  
-    <!-- ======= Sidebar ======= -->
+  </header><!-- End Header -->
+
+  <!-- ======= Sidebar ======= -->
   @include('layouts.sidebar')
-  
+
   <script src="{{asset('assets/vendor/apexcharts/apexcharts.min.js')}}"></script>
   <script src="{{asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
   <script src="{{asset('assets/vendor/chart.js/chart.min.js')}}"></script>
@@ -78,11 +92,12 @@
   <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.27.3/dist/apexcharts.min.js"></script>
 
   <main class="py-4">
-            @yield('content')
+    @yield('content')
   </main>
   @include('layouts.footer')
 
 
   <!-- Vendor JS Files -->
 </body>
+
 </html>

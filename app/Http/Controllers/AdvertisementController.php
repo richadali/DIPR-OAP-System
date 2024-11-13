@@ -193,7 +193,7 @@ class AdvertisementController extends Controller
 
     public function ShowData(Request $request)
     {
-        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'subject', 'ad_category', 'advertisement_type', 'color', 'page_info'])
+        $advertisements = Advertisement::with(['department', 'assigned_news.empanelled.news_type', 'subject', 'ad_category', 'advertisement_type', 'color', 'page_info'])
             ->where('advertisement.id', '=', $request->id)
             ->where('advertisement.user_id', '=', auth()->user()->id)
             ->get();

@@ -28,50 +28,33 @@ class BillsController extends Controller
         $advertisements = $advertisementsQuery->get();
         return view('modules.bills.bills')->with(compact('role', 'advertisements', 'gstRates'));
     }
+
     public function ViewContent(Request $request)
     {
         $role = Auth::user()->role->role_name;
         $user = Auth::user();
 
-        $billsQuery  = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.issue_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
+        $billsQuery = Bill::with(['advertisement.department', 'empanelled'])
+            ->select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.issue_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
-            ->join('assigned_news as an', function ($join) {
-                $join->on('an.advertisement_id', '=', 'a.id');
-                $join->on('an.empanelled_id', '=', 'b.empanelled_id');
-            })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id');
 
         if ($role !== 'Admin') {
             $billsQuery->where('a.user_id', $user->id);
         }
+
         $billsQuery->orderBy('b.created_at', 'desc');
 
         $bills = $billsQuery->get();
 
-        // Transform the bills to separate rows for each newspaper
-        $result = [];
-        foreach ($bills as $bill) {
-            $newspaperNames = explode(', ', $bill->news_name); // Split newspapers by comma
-            foreach ($newspaperNames as $newspaperName) {
-                $result[] = [
-                    'id' => $bill->id,
-                    'dept_name' => $bill->dept_name,
-                    'news_name' => $newspaperName,
-                    'mipr_no' => $bill->mipr_no,
-                    'issue_date' => $bill->issue_date,
-                    'bill_no' => $bill->bill_no,
-                    'bill_date' => $bill->bill_date,
-                ];
-            }
-        }
-
-        return response()->json($result)->withHeaders([
+        return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
             'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
         ]);
     }
+
 
 
     public function getDeptLetterNo(Request $request)

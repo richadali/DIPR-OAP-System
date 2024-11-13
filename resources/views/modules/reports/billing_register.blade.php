@@ -1,11 +1,59 @@
 @extends('layouts.app_1')
 
 @section('content')
+<style>
+  .card-header {
+    font-weight: bold;
+    font-size: 1.25rem;
+  }
 
+  .input-group-text {
+    background-color: #f8f9fa;
+    border: none;
+  }
+
+  .form-label {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  .form-control {
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+  }
+
+  select.form-control {
+    height: 2.75rem;
+  }
+
+  .btn-get-billing-register {
+    font-weight: bold;
+    background-color: #007bff;
+    border: none;
+  }
+
+  .btn-get-billing-register:hover {
+    background-color: #0056b3;
+  }
+
+  #department,
+  #newspaper {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  #department,
+  #newspaper,
+  #from,
+  #to {
+    max-width: 100%;
+  }
+</style>
 <main id="main" class="main">
 
   <div class="pagetitle">
-    <h1>Billing Register</h1>
+    <h1>Billing Register <span class="fs-6 text-secondary">(Bills paid by DIPR)</span></h1>
     <nav>
       <ol class="breadcrumb">
         <li class="breadcrumb-item">Billing Register Management</li>
@@ -15,86 +63,78 @@
   <section class="section">
     <div class="row">
       <div class="col-lg-12">
-        <div class="card">
+        <div class="card shadow-lg mt-4 pt-3">
           <div class="card-body">
             <div class="container">
-              <div class="row justify-content-center">
-                <!-- Existing date fields -->
-                <div class="col-md-3" align="center">
+              <!-- Date Fields Row -->
+              <div class="row justify-content-center mb-4">
+                <div class="col-md-3 text-center">
                   <label for="from" class="form-label">Bill Date From:</label>
                   <div class="input-group">
                     <input id="from" type="text" class="form-control" name="from" autocomplete="off"
                       placeholder="dd-mm-yyyy" readonly>
-                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                    <span class="input-group-text bg-light"><i class="ri-calendar-line"></i></span>
                   </div>
                 </div>
-                <div class="col-md-3" align="center">
+                <div class="col-md-3 text-center">
                   <label for="to" class="form-label">Bill Date To:</label>
                   <div class="input-group">
                     <input id="to" type="text" class="form-control" name="to" autocomplete="off"
                       placeholder="dd-mm-yyyy" readonly>
-                    <span class="input-group-text"><i class="ri-calendar-line"></i></span>
+                    <span class="input-group-text bg-light"><i class="ri-calendar-line"></i></span>
                   </div>
                 </div>
+                <div class="col-md-2 text-center align-self-end">
+                  <label class="form-label">&nbsp;</label> <!-- Empty label for alignment -->
+                  <button class="btn btn-success w-100" id="clearDates" type="button">Clear Dates</button>
+                </div>
               </div>
-              <br>
-              <div class="row justify-content-center">
-                <!-- New searchable dropdowns for department and newspaper -->
-                <div class="col-md-3" align="center">
-                  <label for="department" class="form-label">Department:</label>
-                  <select id="department" class="form-control department" data-placeholder="Select Department">
-                    <option value="" selected disabled>Select Department</option>
+
+              <!-- Departments Dropdown Row -->
+              <div class="row justify-content-center mb-3">
+                <div class="col-md-8">
+                  <label for="department" class="form-label">Departments:</label>
+                  <select id="department" class="form-control department" data-placeholder="Select Departments"
+                    multiple>
                     @foreach($departments as $department)
                     <option value="{{ $department->id }}">{{ $department->dept_name }}</option>
                     @endforeach
                   </select>
                 </div>
-                <div class="col-md-3" align="center">
-                  <label for="newspaper" class="form-label">Newspaper:</label>
-                  <select id="newspaper" class="form-control newspaper" data-placeholder="Select Newspaper">
-                    <option value="" selected disabled>Select Newspaper</option>
+              </div>
+
+              <!-- Newspapers Dropdown Row -->
+              <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                  <label for="newspaper" class="form-label">Organizations:</label>
+                  <select id="newspaper" class="form-control newspaper" data-placeholder="Select Organizations"
+                    multiple>
                     @foreach($newspapers as $newspaper)
                     <option value="{{ $newspaper->id }}">{{ $newspaper->news_name }}</option>
                     @endforeach
                   </select>
                 </div>
               </div>
-              <br>
-              <div class="row justify-content-center">
-                <!-- Radio buttons for time period -->
-                <div class="col-md-6" align="center">
-                  <label class="form-label">Time Period:</label>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="timePeriod" id="monthly" value="monthly">
-                    <label class="form-check-label" for="monthly">Monthly</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="timePeriod" id="quarterly" value="quarterly">
-                    <label class="form-check-label" for="quarterly">Quarterly</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="timePeriod" id="yearly" value="yearly">
-                    <label class="form-check-label" for="yearly">Yearly</label>
-                  </div>
+
+              <!-- Action Buttons Row -->
+              <div class="row justify-content-center mb-3">
+                <div class="col-md-4 text-center">
+                  <input type="button" class="btn btn-primary btn-get-billing-register w-100"
+                    value="Get Billing Register" id="btn-get-billing-register">
                 </div>
               </div>
-              <br>
+
+              <!-- Print Button Placeholder Row -->
               <div class="row justify-content-center">
-                <!-- Existing button -->
-                <div class="col-md-3" align="center">
-                  <input type="button" class="btn btn-primary btn-get-billing-register" value="Get Billing Register"
-                    id="btn-get-billing-register">
-                </div>
-              </div>
-              <div class="row justify-content-center">
-                <div class="col-md-3" align="center">
+                <div class="col-md-4 text-center">
                   <div id="printButtonPlaceholder"></div>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
+
+
 
 
         <div class="card">
@@ -122,13 +162,13 @@
                   <thead>
                     <tr>
                       <th class="text-center" scope="col" width="3%">#</th>
-                      <th class="text-center" scope="col" width="20%">Branch of the Department</th>
-                      <th class="text-center" scope="col" width="15%">Newspapers isssued</th>
-                      <th class="text-center" scope="col" width="8%">Release Order No.</th>
-                      <th class="text-center" scope="col" width="20%">Date</th>
+                      <th class="text-center" scope="col" width="20%">Department</th>
+                      <th class="text-center" scope="col" width="15%">Isssued Organizations</th>
+                      <th class="text-center" scope="col" width="8%">RO No.</th>
+                      <th class="text-center" scope="col" width="5%">RO Date</th>
                       <th class="text-center" scope="col" width="8%">Bill No</th>
                       <th class="text-center" scope="col" width="8%">Bill Date</th>
-                      <th class="text-center" scope="col" width="8%">Amount</th>
+                      <th class="text-center" scope="col" width="10%">Amount</th>
                     </tr>
                   </thead>
                   <tbody>

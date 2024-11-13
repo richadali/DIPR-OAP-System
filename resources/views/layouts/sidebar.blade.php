@@ -121,7 +121,12 @@
         </li>
         <li>
           <a href="{{route('/reports/billing-register')}}">
-            <i class="bi bi-circle"></i><span>Billing Register</span>
+            <i class="bi bi-circle"></i><span>Billing Register (paid by DIPR)</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{route('reports/not_paid_by_dipr')}}">
+            <i class="bi bi-circle"></i><span>Billing Register (paid by dept.)</span>
           </a>
         </li>
         <li>
@@ -129,12 +134,6 @@
             <i class="bi bi-circle"></i><span>Detailed Expenditure Report</span>
           </a>
         </li>
-        <li>
-          <a href="{{route('reports/not_paid_by_dipr')}}">
-            <i class="bi bi-circle"></i><span>Bills not paid by DIPR</span>
-          </a>
-        </li>
-
       </ul>
     </li>
     @endif
@@ -164,12 +163,7 @@
         </li>
         <li>
           <a href="{{route('/reports/billing-register')}}">
-            <i class="bi bi-circle"></i><span>Billing Register</span>
-          </a>
-        </li>
-        <li>
-          <a href="">
-            <i class="bi bi-circle"></i><span>Detailed Expenditure Report</span>
+            <i class="bi bi-circle"></i><span>Billing Register (paid by DIPR)</span>
           </a>
         </li>
         <li>
@@ -177,7 +171,11 @@
             <i class="bi bi-circle"></i><span>Bills not paid by DIPR</span>
           </a>
         </li>
-
+        <li>
+          <a href="">
+            <i class="bi bi-circle"></i><span>Detailed Expenditure Report</span>
+          </a>
+        </li>
       </ul>
     </li>
     @endif

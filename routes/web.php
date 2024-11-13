@@ -509,6 +509,12 @@ Route::get('/reports/print_issue_register/{from}/{to}', [ReportsController::clas
     ->middleware('throttle')
     ->name('/reports/print_issue_register');
 
+Route::get('/reports/export_issue_register/{from}/{to}', [ReportsController::class, 'exportIssueRegisterToExcel'])
+    ->middleware('cache.headers')
+    ->middleware('throttle')
+    ->name('reports.export_issue_register');
+
+
 //BILLING register
 Route::get('/reports/billing-register', [ReportsController::class, 'indexBillingRegister'])
     ->name('/reports/billing-register');
@@ -527,6 +533,12 @@ Route::get('/reports/print_billing_register/{from}/{to}', [ReportsController::cl
     ->middleware('cache.headers')
     ->middleware('throttle')
     ->name('/reports/print_billing_register');
+
+Route::get('/reports/export_billing_register/{from?}/{to?}/{department?}/{newspaper?}', [ReportsController::class, 'exportBillingRegisterToExcel'])
+    ->middleware('cache.headers')
+    ->middleware('throttle')
+    ->name('reports.export_billing_register');
+
 
 //BILLS not_paid_by_dipr
 
@@ -547,6 +559,11 @@ Route::get('/reports/print_nonDIPR_register/{from}/{to}', [ReportsController::cl
     ->middleware('cache.headers')
     ->middleware('throttle')
     ->name('/reports/print_nonDIPR_register');
+
+Route::get('/reports/export_nonDIPR_register/{from?}/{to?}/{department?}/{newspaper?}', [ReportsController::class, 'exportNonDIPRRegisterToExcel'])
+    ->middleware('cache.headers')
+    ->middleware('throttle')
+    ->name('reports.export_nonDIPR_register');
 
 //Forwarding Letter
 

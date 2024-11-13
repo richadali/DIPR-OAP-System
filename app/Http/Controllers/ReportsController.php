@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BillingRegisterExport;
+use App\Exports\IssueRegisterExport;
+use App\Exports\NonDIPRBillingRegisterExport;
 use Illuminate\Support\Facades\Log;
 use App\Models\Advertisement;
 use App\Models\Amount;
@@ -16,6 +19,7 @@ use App\Models\MiprFileNo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportsController extends Controller
 {
@@ -31,18 +35,34 @@ class ReportsController extends Controller
         $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
         $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
 
-        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department'])
+        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department', 'subject'])
             ->whereBetween('advertisement.issue_date', [$fromDate, $toDate])
             ->orderBy('advertisement.id')
             ->get();
+
         foreach ($advertisements as $advertisement) {
             $advertisement->issue_date = \Carbon\Carbon::parse($advertisement->issue_date);
-            // $advertisement->positively_on = \Carbon\Carbon::parse($advertisement->positively_on);
         }
+
         $pdf = PDF::loadView('reports.issue_register', compact('advertisements'));
 
         return $pdf->stream('issue_register.pdf', array('Attachment' => 0));
     }
+
+    public function exportIssueRegisterToExcel(Request $request, $from, $to)
+    {
+        $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
+        $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
+
+        $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department', 'subject'])
+            ->whereBetween('advertisement.issue_date', [$fromDate, $toDate])
+            ->orderBy('advertisement.id')
+            ->get();
+
+        // Export data to Excel
+        return Excel::download(new IssueRegisterExport($advertisements), 'issue_register.xlsx');
+    }
+
 
     public function ViewIssueRegister()
     {
@@ -83,10 +103,12 @@ class ReportsController extends Controller
 
     public function printBillingRegister(Request $request)
     {
+        $from = $request->from;
+        $to = $request->to;
         $departmentId = $request->department;
         $newspaperId = $request->newspaper;
 
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -95,6 +117,9 @@ class ReportsController extends Controller
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
+            })
             ->when($departmentId, function ($query, $departmentId) {
                 return $query->where('a.department_id', $departmentId);
             })
@@ -116,12 +141,10 @@ class ReportsController extends Controller
         return $pdf->stream('billing_register.pdf', array('Attachment' => 0));
     }
 
-    public function ViewBillingRegister()
-    {
-        $departmentId = request()->input('department_id');
-        $newspaperId = request()->input('newspaper_id');
 
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.release_order_no')
+    public function exportBillingRegisterToExcel($from = null, $to = null, $departmentId = null, $newspaperId = null)
+    {
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -130,18 +153,44 @@ class ReportsController extends Controller
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
-            ->when($departmentId, function ($query, $departmentId) {
-                return $query->where('a.department_id', $departmentId);
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
             })
-            ->when($newspaperId, function ($query, $newspaperId) {
-                return $query->where('b.empanelled_id', $newspaperId);
+            ->when($departmentId, function ($query) use ($departmentId) {
+                $query->where('a.department_id', $departmentId);
+            })
+            ->when($newspaperId, function ($query) use ($newspaperId) {
+                $query->where('b.empanelled_id', $newspaperId);
             })
             ->where('a.payment_by', 'D')
+            ->orderBy('b.bill_date')
             ->get();
 
         foreach ($bills as $bill) {
+            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date)->format('d-m-Y');
+            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date)->format('d-m-Y');
             $bill->amount = number_format($bill->amount, 2);
+
+            if (!empty($bill->cm) && !empty($bill->columns)) {
+                $bill->size_seconds = $bill->cm . 'x' . $bill->columns;
+            } elseif (!empty($bill->seconds)) {
+                $bill->size_seconds = $bill->seconds . 's';
+            } else {
+                $bill->size_seconds = '';
+            }
         }
+        return Excel::download(new BillingRegisterExport($bills), 'billing_register.xlsx');
+    }
+
+
+    public function ViewBillingRegister()
+    {
+        $bills = Bill::with(['advertisement.department', 'advertisement.subject', 'empanelled'])
+            ->whereHas('advertisement', function ($query) {
+                $query->where('payment_by', 'D');
+            })
+            ->orderBy('bill_date', 'desc')
+            ->get();
 
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
@@ -149,27 +198,32 @@ class ReportsController extends Controller
         ]);
     }
 
+
+
+
     public function GetBillingRegister(Request $request)
     {
+        $from = $request->from;
+        $to = $request->to;
         $departmentId = $request->department;
         $newspaperId = $request->newspaper;
 
-        $bills = Bill::with(['advertisement.assigned_news.empanelled'])
+        $bills = Bill::with(['advertisement.department', 'advertisement.subject', 'empanelled'])
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
+            })
             ->when($departmentId, function ($query, $departmentId) {
                 return $query->whereHas('advertisement', function ($query) use ($departmentId) {
                     $query->where('department_id', $departmentId);
                 });
             })
             ->when($newspaperId, function ($query, $newspaperId) {
-                return $query->whereHas('advertisement.assigned_news', function ($query) use ($newspaperId) {
-                    $query->where('empanelled_id', $newspaperId);
-                });
+                return $query->where('empanelled_id', $newspaperId);
             })
             ->whereHas('advertisement', function ($query) {
                 $query->where('payment_by', 'D');
             })
             ->get();
-
 
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
@@ -177,19 +231,25 @@ class ReportsController extends Controller
         ]);
     }
 
+
+
     //NON DIPR BILL REGISTER
     public function indexNonDIPRRegister()
     {
         $role   = Auth::user()->role->role_name;
-        return view('modules/reports/non_DIPR_register')->with(compact('role'));
+        $departments = Department::all();
+        $newspapers = Empanelled::all();
+        return view('modules/reports/non_DIPR_register')->with(compact('role', 'newspapers', 'departments'));
     }
 
     public function printNonDIPRRegister(Request $request, $from, $to)
     {
-        $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
-        $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
+        $from = $request->from;
+        $to = $request->to;
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
 
-        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date',  'a.amount', 'b.paid_by')
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -197,23 +257,34 @@ class ReportsController extends Controller
                 $join->on('an.empanelled_id', '=', 'b.empanelled_id');
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
-            ->whereBetween('b.bill_date', [$fromDate, $toDate])
-            ->where('b.paid_by', 'O')
+            ->join('department as d', 'd.id', '=', 'a.department_id')
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
+            })
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('a.department_id', $departmentId);
+            })
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('b.empanelled_id', $newspaperId);
+            })
+            ->where('a.payment_by', 'C')
             ->orderBy('b.bill_date')
             ->get();
+
         foreach ($bills as $bill) {
             $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
             $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date);
             $bill->amount = number_format($bill->amount, 2);
         }
+
         $pdf = PDF::loadView('reports.non_DIPR_register', compact('bills'));
 
-        return $pdf->stream('billing_register.pdf', array('Attachment' => 0));
+        return $pdf->stream('non_DIPR_register.pdf', array('Attachment' => 0));
     }
 
-    public function ViewNonDIPRRegister()
+    public function exportNonDIPRRegisterToExcel($from = null, $to = null, $departmentId = null, $newspaperId = null)
     {
-        $bills = Bill::select('b.id', 'a.hod', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'b.paid_by')
+        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('assigned_news as an', function ($join) {
@@ -221,11 +292,44 @@ class ReportsController extends Controller
                 $join->on('an.empanelled_id', '=', 'b.empanelled_id');
             })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
-            ->where('paid_by', '<>', 'D')
+            ->join('department as d', 'd.id', '=', 'a.department_id')
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
+            })
+            ->when($departmentId, function ($query) use ($departmentId) {
+                $query->where('a.department_id', $departmentId);
+            })
+            ->when($newspaperId, function ($query) use ($newspaperId) {
+                $query->where('b.empanelled_id', $newspaperId);
+            })
+            ->where('a.payment_by', 'C')
+            ->orderBy('b.bill_date')
             ->get();
+
         foreach ($bills as $bill) {
+            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date)->format('d-m-Y');
+            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date)->format('d-m-Y');
             $bill->amount = number_format($bill->amount, 2);
+
+            if (!empty($bill->cm) && !empty($bill->columns)) {
+                $bill->size_seconds = $bill->cm . 'x' . $bill->columns;
+            } elseif (!empty($bill->seconds)) {
+                $bill->size_seconds = $bill->seconds . 's';
+            } else {
+                $bill->size_seconds = '';
+            }
         }
+        return Excel::download(new NonDIPRBillingRegisterExport($bills), 'non_DIPR_billing_register.xlsx');
+    }
+
+    public function ViewNonDIPRRegister()
+    {
+        $bills = Bill::with(['advertisement.department', 'advertisement.subject', 'empanelled'])
+            ->whereHas('advertisement', function ($query) {
+                $query->where('payment_by', 'C');
+            })
+            ->orderBy('bill_date', 'desc')
+            ->get();
 
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',
@@ -236,15 +340,25 @@ class ReportsController extends Controller
     {
         $from = $request->from;
         $to = $request->to;
-        $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
-        $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
 
-
-        $bills = Bill::with(['advertisement.assigned_news.empanelled'])
-            ->whereBetween('bills.bill_date', [$fromDate, $toDate])
-            ->where('paid_by', '<>', 'D')
+        $bills = Bill::with(['advertisement.department', 'advertisement.subject', 'empanelled'])
+            ->when($from && $to, function ($query) use ($from, $to) {
+                $query->whereBetween('bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
+            })
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->whereHas('advertisement', function ($query) use ($departmentId) {
+                    $query->where('department_id', $departmentId);
+                });
+            })
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('empanelled_id', $newspaperId);
+            })
+            ->whereHas('advertisement', function ($query) {
+                $query->where('payment_by', 'C');
+            })
             ->get();
-
 
         return response()->json($bills)->withHeaders([
             'Cache-Control' => 'max-age=15, public',

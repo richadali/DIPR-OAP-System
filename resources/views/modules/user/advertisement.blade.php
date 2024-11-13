@@ -159,11 +159,10 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p><strong>Status:</strong> <span id="detailsModalStatus"></span></p>
-
         <!-- Progress bar -->
         <div class="container">
-          <ul class="progressbar">
+          <ul class="progressbar"
+            style="margin-top: 5px; padding: 20px; border: 1px solid #d7fadf; background-color: #d7fadf; border-radius: 8px;">
             <li>Created</li>
             <li>Published</li>
             <li>Billed</li>
@@ -171,27 +170,40 @@
           </ul>
         </div>
 
-        <div id="cancellationReasonContainer" style="display: none; margin-top: 15px;">
-          <p><strong>Cancellation Reason:</strong> <span id="cancellationReason"></span></p>
+        <div id="cancellationReasonContainer"
+          style="display: none; margin-top: 5px; padding: 15px; border: 1px solid #f8d7da; background-color: #f8d7da; border-radius: 8px;">
+          <div style="display: flex; align-items: center;">
+            <!-- Red Icon -->
+            <div style="color: #d9534f; font-size: 2.5rem; margin-right: 15px;">
+              <i class="bi bi-x-circle-fill"></i>
+            </div>
+            <div>
+              <h5 style="color: #d9534f; margin: 0;">Advertisement Cancelled</h5>
+              <p style="margin: 5px 0; font-size: 1rem;">
+                <strong>Reason:</strong> <span id="cancellationReason"></span>
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="row">
+
+        <div class="row mt-3">
           <div class="col-md-6">
-            <p><strong>Issue Date:</strong> <span id="detailsModalIssueDate"></span></p>
-            <p><strong>MIPR No:</strong> <span id="detailsModalMiprNo"></span></p>
+            <p><strong>Issue On:</strong> <span id="detailsModalIssueDate"></span></p>
             <p><strong>Department:</strong> <span id="detailsModalDepartment"></span></p>
+
+            <p><strong>Reference No:</strong> <span id="detailsModalRefNo"></span></p>
             <p><strong>Advertisement Type:</strong> <span id="detailsModalAdvertisementType"></span></p>
             <p><strong>Newspapers:</strong> <span id="detailsModalNewspapers"></span></p>
             <p><strong>Amount:</strong> <span id="detailsModalAmount"></span></p>
-            <p><strong>Reference No:</strong> <span id="detailsModalRefNo"></span></p>
-            <p><strong>Reference Date:</strong> <span id="detailsModalRefDate"></span></p>
+
           </div>
 
           <div class="col-md-6">
+            <p><strong>MIPR No:</strong> <span id="detailsModalMiprNo"></span></p>
             <p><strong>Payment By:</strong> <span id="detailsModalPaymentBy"></span></p>
+            <p><strong>Reference Date:</strong> <span id="detailsModalRefDate"></span></p>
             <p><strong>Number of Entries:</strong> <span id="detailsModalInsertions"></span></p>
-            <p><strong>Release Order No:</strong> <span id="detailsModalReleaseOrderNo"></span></p>
-            <p><strong>Release Order Date:</strong> <span id="detailsModalReleaseOrderDate"></span></p>
             <p><strong>CM:</strong> <span id="detailsModalCM"></span></p>
             <p><strong>Columns:</strong> <span id="detailsModalColumns"></span></p>
             <p><strong>Remarks:</strong> <span id="detailsModalRemarks"></span></p>
