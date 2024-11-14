@@ -534,7 +534,7 @@ Route::get('/reports/print_billing_register/{from}/{to}', [ReportsController::cl
     ->middleware('throttle')
     ->name('/reports/print_billing_register');
 
-Route::get('/reports/export_billing_register/{from?}/{to?}/{department?}/{newspaper?}', [ReportsController::class, 'exportBillingRegisterToExcel'])
+Route::get('/reports/export_billing_register', [ReportsController::class, 'exportBillingRegisterToExcel'])
     ->middleware('cache.headers')
     ->middleware('throttle')
     ->name('reports.export_billing_register');
@@ -560,7 +560,7 @@ Route::get('/reports/print_nonDIPR_register/{from}/{to}', [ReportsController::cl
     ->middleware('throttle')
     ->name('/reports/print_nonDIPR_register');
 
-Route::get('/reports/export_nonDIPR_register/{from?}/{to?}/{department?}/{newspaper?}', [ReportsController::class, 'exportNonDIPRRegisterToExcel'])
+Route::get('/reports/export_nonDIPR_register', [ReportsController::class, 'exportNonDIPRRegisterToExcel'])
     ->middleware('cache.headers')
     ->middleware('throttle')
     ->name('reports.export_nonDIPR_register');

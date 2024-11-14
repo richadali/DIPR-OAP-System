@@ -51,7 +51,7 @@ class SidebarSeeder extends Seeder
                 'sidebar_order' => 7,
             ],
             [
-                'sidebar_name' => 'Admin Management',
+                'sidebar_name' => 'Advertisement Management',
                 'sidebar_inactive' => false,
                 'sidebar_order' => 8,
             ],

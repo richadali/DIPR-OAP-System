@@ -121,9 +121,23 @@ $(document).ready(function () {
 
         // Set default dates if "From" and "To" are empty
         if (from === "" || to === "") {
-            var currentYear = new Date().getFullYear();
-            from = "01-01-" + currentYear;
-            to = "31-12-" + currentYear;
+            var today = new Date();
+            var currentYear = today.getFullYear();
+            var startYear, endYear;
+
+            // Determine if we're currently in the first or second half of the financial year
+            if (today.getMonth() + 1 >= 4) {
+                // If it's April or later, the financial year started this year and ends next year
+                startYear = currentYear;
+                endYear = currentYear + 1;
+            } else {
+                // If it's before April, the financial year started last year and ends this year
+                startYear = currentYear - 1;
+                endYear = currentYear;
+            }
+
+            from = "01-04-" + startYear;
+            to = "31-03-" + endYear;
         }
 
         // Proceed with AJAX request if validation passes
@@ -204,32 +218,31 @@ $(document).ready(function () {
     function createPrintButton(from, to, department, newspaper) {
         var printButton =
             '<br><a href="/reports/print_nonDIPR_register/' +
-            from +
+            encodeURIComponent(from || "") +
             "/" +
-            to +
+            encodeURIComponent(to || "") +
             "?department=" +
-            encodeURIComponent(department) +
+            encodeURIComponent(department || "") +
             "&newspaper=" +
-            encodeURIComponent(newspaper) +
+            encodeURIComponent(newspaper || "") +
             '" style="color: white; font-size: 15px;" class="btn btn-secondary issue_register" target="_blank">Print</a>';
-        var excelButton = '<a href="/reports/export_nonDIPR_register';
 
-        if (from) {
-            excelButton += "/" + encodeURIComponent(from);
-        }
-        if (to) {
-            excelButton += "/" + encodeURIComponent(to);
-        }
-        if (department) {
-            excelButton += "/" + encodeURIComponent(department);
-        }
-        if (newspaper) {
-            excelButton += "/" + encodeURIComponent(newspaper);
-        }
+        var excelButton = "/reports/export_nonDIPR_register?";
 
-        excelButton +=
+        if (from) excelButton += "from=" + encodeURIComponent(from) + "&";
+        if (to) excelButton += "to=" + encodeURIComponent(to) + "&";
+        if (department)
+            excelButton += "department=" + encodeURIComponent(department) + "&";
+        if (newspaper)
+            excelButton += "newspaper=" + encodeURIComponent(newspaper) + "&";
+
+        excelButton = excelButton.slice(0, -1);
+
+        excelButton =
+            '<a href="' +
+            excelButton +
             '" style="color: white; font-size: 15px;" class="btn btn-success issue_register" target="_blank">Export to Excel</a>';
 
-        $("#printButtonPlaceholder").html(printButton + " " + excelButton); // Update the print button placeholder
+        $("#printButtonPlaceholder").html(printButton + " " + excelButton);
     }
 });

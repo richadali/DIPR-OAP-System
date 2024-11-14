@@ -23,6 +23,7 @@
             padding: 8px;
             border: 1px solid #000;
             word-wrap: break-word;
+            font-size: 9pt;
         }
 
         .long-text {
@@ -46,14 +47,14 @@
         <thead>
             <tr>
                 <th width="10%">Mipr No</th>
-                <th width="9%">Date of Issue</th>
-                <th width="20%">Name of Department concerned</th>
-                <th width="5%">Size/Seconds</th>
-                <th width="15%">Subject</th>
-                <th width="15%">Ref. No & Date</th>
-                <th width="9%">Positively on</th>
+                <th width="8%">Date of Issue</th>
+                <th width="22%">Name of Department concerned</th>
+                <th width="6%">Size/Secs</th>
+                <th width="10%">Subject</th>
+                <th width="10%">Ref. No & Date</th>
+                <th width="8%">Positively on</th>
                 <th width="5%">No of Insertion</th>
-                <th width="20%">Issued to Organization</th>
+                <th width="18%">Issued to Organization</th>
                 <th width="10%">Remarks</th>
             </tr>
         </thead>

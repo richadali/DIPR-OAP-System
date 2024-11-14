@@ -8,24 +8,25 @@
         <span>Home</span>
       </a>
     </li>
-    @if ($role=='SuperAdmin')
+    @if ($role=='Admin')
     <li class="nav-item">
       <a class="nav-link collapsed" href="{{ route('admin') }}">
         <i class="bi bi-person"></i>
-        <span>Admin Management</span>
+        <span>Advertisement Section Management</span>
       </a>
     </li>
     @endif
-    @if ($role=='SuperAdmin' || $role=='Admin')
+    @if ($role=='Admin' || $role=='Advertisement')
     <li class="nav-item">
       <a class="nav-link collapsed" href="{{ route('user')}}">
         <i class="bi bi-person"></i>
-        <span>User Management</span>
+        <span>Billing Section Management</span>
       </a>
+      
     </li>
     @endif
 
-    @if ($role=='Admin' )
+    @if ($role=='Advertisement' )
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#master-nav" data-bs-toggle="collapse" href="#">
         <i class="bi bi-menu-button-wide"></i><span>Master Data </span><i class="bi bi-chevron-down ms-auto"></i>
@@ -138,13 +139,7 @@
     </li>
     @endif
 
-    @if ($role=='User' )
-    <li class="nav-item">
-      <a class="nav-link collapsed" href="{{route('advertisements')}}">
-        <i class="bi bi-person"></i>
-        <span>Advertisements</span>
-      </a>
-    </li>
+    @if ($role=='Billing' )
     <li class="nav-item">
       <a class="nav-link collapsed" href="{{route('bills')}}">
         <i class="bi bi-person"></i>
@@ -168,7 +163,7 @@
         </li>
         <li>
           <a href="{{route('reports/not_paid_by_dipr')}}">
-            <i class="bi bi-circle"></i><span>Bills not paid by DIPR</span>
+            <i class="bi bi-circle"></i><span>Billing Register (paid by dept.)</span>
           </a>
         </li>
         <li>

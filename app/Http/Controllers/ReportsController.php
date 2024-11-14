@@ -142,8 +142,12 @@ class ReportsController extends Controller
     }
 
 
-    public function exportBillingRegisterToExcel($from = null, $to = null, $departmentId = null, $newspaperId = null)
+    public function exportBillingRegisterToExcel()
     {
+        $from = request()->input('from');
+        $to = request()->input('to');
+        $departmentId = request()->input('department');
+        $newspaperId = request()->input('newspaper');
         $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
@@ -282,8 +286,12 @@ class ReportsController extends Controller
         return $pdf->stream('non_DIPR_register.pdf', array('Attachment' => 0));
     }
 
-    public function exportNonDIPRRegisterToExcel($from = null, $to = null, $departmentId = null, $newspaperId = null)
+    public function exportNonDIPRRegisterToExcel()
     {
+        $from = request()->input('from');
+        $to = request()->input('to');
+        $departmentId = request()->input('department');
+        $newspaperId = request()->input('newspaper');
         $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')

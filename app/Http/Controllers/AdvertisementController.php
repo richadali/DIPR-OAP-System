@@ -27,7 +27,7 @@ class AdvertisementController extends Controller
     {
 
         $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'advertisement_type', 'department'])
-            ->where('user_id', auth()->user()->id)
+            // ->where('user_id', auth()->user()->id)
             ->orderBy('advertisement.mipr_no', 'DESC')
             ->get();
 
@@ -195,7 +195,7 @@ class AdvertisementController extends Controller
     {
         $advertisements = Advertisement::with(['department', 'assigned_news.empanelled.news_type', 'subject', 'ad_category', 'advertisement_type', 'color', 'page_info'])
             ->where('advertisement.id', '=', $request->id)
-            ->where('advertisement.user_id', '=', auth()->user()->id)
+            // ->where('advertisement.user_id', '=', auth()->user()->id)
             ->get();
 
         return response()->json($advertisements);

@@ -20,11 +20,10 @@ class BillsController extends Controller
         $role   = Auth::user()->role->role_name;
         $user = Auth::user();
         $gstRates = GstRate::all();
-        // $advertisements = Advertisement::with(['assigned_news.empanelled'])->where('user_id', $user->id)->get();
         $advertisementsQuery = Advertisement::with(['assigned_news.empanelled']);
-        if ($role !== 'Admin') {
-            $advertisementsQuery->where('user_id', $user->id);
-        }
+        // if ($role !== 'Advertisement') {
+        //     $advertisementsQuery->where('user_id', $user->id);
+        // }
         $advertisements = $advertisementsQuery->get();
         return view('modules.bills.bills')->with(compact('role', 'advertisements', 'gstRates'));
     }
@@ -41,9 +40,9 @@ class BillsController extends Controller
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id');
 
-        if ($role !== 'Admin') {
-            $billsQuery->where('a.user_id', $user->id);
-        }
+        // if ($role !== 'Advertisement') {
+        //     $billsQuery->where('a.user_id', $user->id);
+        // }
 
         $billsQuery->orderBy('b.created_at', 'desc');
 
@@ -162,7 +161,7 @@ class BillsController extends Controller
             $query->select('id', 'amount', 'ref_no');
         }])
             ->where('bills.id', '=', $request->id)
-            ->where('bills.user_id', $user->id)
+            // ->where('bills.user_id', $user->id)
             ->get();
         return response()->json($bills);
     }
