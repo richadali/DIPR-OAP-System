@@ -266,10 +266,9 @@
                   <thead>
                     <tr>
                       <th class="text-center" scope="col" width="5%">#</th>
-                      <th class="text-center" scope="col" width="15%">Issued On</th>
-                      <th class="text-center" scope="col" width="15%">MIPR No</th>
-                      <th class="text-center" scope="col" width="15%">Department</th>
-                      <th class="text-center" scope="col" width="10%">Amount</th>
+                      <th class="text-center" scope="col" width="10%">Issued On</th>
+                      <th class="text-center" scope="col" width="10%">MIPR No</th>
+                      <th class="text-center" scope="col" width="20%">Department</th>
                       <th class="text-center" scope="col" width="15%">Actions</th>
                       <th class="text-center" scope="col" width="5%">RO</th>
                       <th class="text-center" scope="col" width="10%">Status</th>
@@ -279,77 +278,6 @@
                   <tbody>
                   </tbody>
                 </table>
-
-                <!--Modal Start -->
-                <div class="modal fade" id="disablebackdrop" tabindex="-1" data-bs-backdrop="false">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title">user Notification</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <div class="alert alert-danger msg1" style="display:none;">
-                          <h7>Whoops! Title cannot be empty.</h7>
-                        </div>
-
-                        <div class="alert alert-danger msg2" style="display:none;">
-                          <h7>Whoops! Body cannot be empty.</h7>
-                        </div>
-
-                        <div class="alert alert-success alert-block msg3" style="display:none;">
-                          <strong>All notifications sent successfully</strong>
-                        </div>
-                        <div class="alert alert-danger msg4" style="display:none;">
-                          <strong>Whoops!</strong> All notifications failed to send.
-                        </div>
-                        <div class="alert alert-success alert-block msg5" style="display:none;">
-                          <strong>Some notifications failed to send</strong>
-                        </div>
-
-                        <div class="alert alert-danger alert-block msg6" style="display:none;">
-                          <strong>Whoops!</strong> Error!
-                        </div>
-
-                        <form method="POST">
-                          @csrf
-                          <div class="form-group">
-                            <label for="answer" class="form-label"><b>Title</b></label>
-                            <input type="text" class="form-control" id="title" name="title">
-                          </div>
-                          <div class="form-group">
-                            <label for="answer" class="form-label"><b>Body</b></label>
-                            <textarea class="form-control" name="body" id="body"></textarea>
-                          </div>
-                        </form>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                        <button type="button" id="btn-send-user-notification" class="btn btn-primary btn-sm">Send
-                          notification</button>
-                      </div>
-                    </div>
-                  </div>
-
-                </div><!-- End Disabled Backdrop Modal-->
-                <div class="modal fade" id="userdocument_modal" tabindex="-1">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title"><span class="get-user-name"></span>'s &nbsp;<span
-                            class='get-document-name'><span></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <iframe class="document_path" withd="100%" height="100%"></iframe>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
               </div>
 
               <div class="tab-pane fade" id="bordered-justified-foods" role="tabpanel" aria-labelledby="users-tab">
@@ -369,200 +297,203 @@
                     <strong>Whoops!</strong> There were some problems with your input.
                   </div>
 
-
-                  <div class="col-md-6">
-                    <label for="advertisementType" class="form-label"><b>Type</b></label>
-                    <div>
-                      <select name="advertisementType" id="advertisementType" class="form-control "
-                        data-placeholder="Select a subject">
-                        <option value="">--Select Advertisement Type--</option>
-                        @foreach($advertisementType as $type)
-                        <option value="{{ $type->id }}">{{ $type->name }}</option>
-                        @endforeach
-                      </select>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="ref_no" class="form-label"><b>MIPR No</b></label>
+                      <input type="text" class="form-control readonly-input" id="mipr_no" name="mipr_no" required
+                        autocomplete='off' readonly>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="issue_date" class="form-label"><b>Date of Issue</b></label>
+                      <input type="text" class="form-control" id="issue_date" name="issue_date" maxlength="10" required
+                        autocomplete="off">
                     </div>
                   </div>
 
-
-                  <div class="col-md-6" id="categoryContainer" style="display:none">
-                    <label for="category" class="form-label"><b>Category</b></label>
-                    <div>
-                      <select name="category" id="category" class="form-control " data-placeholder="Select a category">
-                        <option value="" disabled selected>--Select category--</option>
-                        @foreach($categories as $category)
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="department_category" class="form-label"><b>Department Category</b></label>
+                      <select id="department_category" name="department_category" class="form-control" required>
+                        <option value="" disabled selected>--Select Dept Category--</option>
+                        @foreach ($department_categories as $category)
                         <option value="{{ $category->id }}">{{ $category->category_name }}</option>
                         @endforeach
                       </select>
                     </div>
-                  </div>
-
-
-                  <div class="col-md-6">
-                    <label for="issue_date" class="form-label"><b>Date of Issue</b></label>
-                    <input type="text" class="form-control" id="issue_date" name="issue_date" maxlength="10" required
-                      autocomplete="off">
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="department_category" class="form-label"><b>Department Category</b></label>
-                    <select id="department_category" name="department_category" class="form-control" required>
-                      <option value="" disabled selected>--Select Dept Category--</option>
-                      @foreach ($department_categories as $category)
-                      <option value="{{ $category->id }}">{{ $category->category_name }}</option>
-                      @endforeach
-                    </select>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="department" class="form-label"><b>Department</b></label>
-                    <select id="department" name="department" class="form-control select2" required>
-                    </select>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="newspaper_type" class="form-label"><b>Media Type</b></label>
-                    <select id="newspaper_type" name="newspaper_type" class="form-control" required>
-                      <option value="" disabled selected>--Select Media Type--</option>
-                      @foreach ($newspaper_types as $type)
-                      <option value="{{ $type->id }}">{{ $type->news_type }}</option>
-                      @endforeach
-                    </select>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="newspaper" class="form-label"><b>Organization(s)</b>
-                      <small class="text-muted d-block mt-1">
-                        (Number next to each organization shows total ads allotted in past 7 days)
-                      </small></label>
-                    <div>
-                      <select name="newspaper[]" id="newspaper" class="form-control select2" multiple
-                        data-placeholder="Select Organization">
-                        <option value="select-all">-Select All-</option> <!-- Select All option -->
-                        <!-- Other options will be populated via Ajax -->
+                    <div class="col-md-6">
+                      <label for="department" class="form-label"><b>Department</b></label>
+                      <select id="department" name="department" class="form-control select2" required>
                       </select>
                     </div>
                   </div>
 
-
-                  {{-- Rate Calculation --}}
-                  <div id="printcalculation" style="display: none;">
-                    <div class="col-md-2">
-                      <label for="size" class="form-label"><b>Size(cm*col):</b></label>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="ref_no" class="form-label"><b>Reference No (Letter No)</b></label>
+                      <input type="text" class="form-control" id="ref_no" name="ref_no" required autocomplete='off'>
                     </div>
                     <div class="col-md-6">
-                      <div class="row">
-                        <div class="col-md-5">
-                          <label for="cm"
-                            class="form-label"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                              cm </b></label>
-                          <br>
-                          <input id="cm" type="text" class="form-control" name="cm" required autocomplete="off">
-                        </div>
-                        <div class="col-md-5">
-                          <label for="columns"
-                            class="form-label"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;col</b></label>
-                          <input id="columns" type="text" class="form-control" name="columns" required
-                            autocomplete="off">
-                        </div>
+                      <label for="ref_date" class="form-label"><b>Reference Date</b></label>
+                      <input type="text" class="form-control" id="ref_date" name="ref_date" required autocomplete='off'
+                        readonly>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="payment_by" class="form-label"><b>Payment By</b></label>
+                      <div>
+                        <select name="payment_by" id="payment_by" class="form-control" data-placeholder="Select">
+                          <option value="" disabled selected>--Select Department--</option>
+                          <option value="D">DIPR</option>
+                          <option value="C">Concerned Department</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="advertisementType" class="form-label"><b>Advertisement Type</b></label>
+                      <div>
+                        <select name="advertisementType" id="advertisementType" class="form-control "
+                          data-placeholder="Select a subject">
+                          <option value="">--Select Advertisement Type--</option>
+                          @foreach($advertisementType as $type)
+                          <option value="{{ $type->id }}">{{ $type->name }}</option>
+                          @endforeach
+                        </select>
                       </div>
                     </div>
                   </div>
 
-                  <div class="col-md-6" id="videoSecondsContainer" style="display: none;">
-                    <label for="seconds" class="form-label"><b>Number of Seconds:</b></label>
-                    <input id="seconds" type="text" class="form-control" name="seconds" required autocomplete="off">
-                  </div>
-
-
-                  <div class="col-md-6" id="amountContainer" style="display:block;">
-                    <label for="amount" class="form-label"><b>Amount</b></label>
-                    <input id="amount" type="text" class="form-control readonly-input" name="amount" required>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="payment_by" class="form-label"><b>Payment By</b></label>
-                    <div>
-                      <select name="payment_by" id="payment_by" class="form-control" data-placeholder="Select">
-                        <option value="" disabled selected>--Select Department--</option>
-                        <option value="D">DIPR</option>
-                        <option value="C">Concerned Department</option>
-                      </select>
+                  <div class="row">
+                    <div class="col-md-6" id="categoryContainer" style="display:none">
+                      <label for="category" class="form-label"><b>Category</b></label>
+                      <div>
+                        <select name="category" id="category" class="form-control "
+                          data-placeholder="Select a category">
+                          <option value="" disabled selected>--Select category--</option>
+                          @foreach($categories as $category)
+                          <option value="{{ $category->id }}">{{ $category->category_name }}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6" id="subjectContainer" style="display:none">
+                      <label for="subject" class="form-label"><b>Subject</b></label>
+                      <div>
+                        <select name="subject" id="subject" class="form-control" data-placeholder="Select a subject">
+                          <option value="" disabled selected>--Select Subject--</option>
+                          @foreach($subjects as $subject)
+                          <option value="{{ $subject->id }}">{{ $subject->subject_name }}</option>
+                          @endforeach
+                        </select>
+                      </div>
                     </div>
                   </div>
 
-                  <div class="col-md-6" id="subjectContainer" style="display:none">
-                    <label for="subject" class="form-label"><b>Subject</b></label>
-                    <div>
-                      <select name="subject" id="subject" class="form-control" data-placeholder="Select a subject">
-                        <option value="" disabled selected>--Select Subject--</option>
-                        @foreach($subjects as $subject)
-                        <option value="{{ $subject->id }}">{{ $subject->subject_name }}</option>
-                        @endforeach
-                      </select>
+                  <div class="row">
+                    <div class="col-md-6" id="colorContainer" style="display:none">
+                      <label for="color" class="form-label"><b>Color</b></label>
+                      <div>
+                        <select name="color" id="color" class="form-control " data-placeholder="Select a color">
+                          <option value="" disabled selected>--Select Color--</option>
+                          @foreach($color as $type)
+                          <option value="{{ $type->id }}">{{ $type->color_name }}</option>
+                          @endforeach
+                        </select>
+                      </div>
                     </div>
-                  </div>
 
-
-                  <div class="col-md-6">
-                    <label for="ref_no" class="form-label"><b>MIPR No</b></label>
-                    <input type="text" class="form-control readonly-input" id="mipr_no" name="mipr_no" required
-                      autocomplete='off' readonly>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="ref_no" class="form-label"><b>Reference No (Letter No)</b></label>
-                    <input type="text" class="form-control" id="ref_no" name="ref_no" required autocomplete='off'>
-                  </div>
-
-                  <div class="col-md-6">
-                    <label for="ref_date" class="form-label"><b>Reference Date</b></label>
-                    <input type="text" class="form-control" id="ref_date" name="ref_date" required autocomplete='off'
-                      readonly>
-                  </div>
-
-
-                  <div class="col-md-6">
-                    <label for="positively" class="form-label"><b>Positively On</b></label>
-                    <input id="positively" type="text" class="form-control" readonly name="positively" required
-                      autocomplete='off'>
-                  </div>
-
-
-                  <div class="col-md-6">
-                    <label for="insertions" class="form-label" id="insertions-label"><b>No of issues</b></label>
-                    <input type="text" class="form-control readonly-input" id="insertions" name="insertions"
-                      maxlength="10" required autocomplete='off' readonly>
-                  </div>
-
-
-
-                  <div class="col-md-6" id="colorContainer" style="display:none">
-                    <label for="color" class="form-label"><b>Color</b></label>
-                    <div>
-                      <select name="color" id="color" class="form-control " data-placeholder="Select a color">
-                        <option value="" disabled selected>--Select Color--</option>
-                        @foreach($color as $type)
-                        <option value="{{ $type->id }}">{{ $type->color_name }}</option>
-                        @endforeach
-                      </select>
+                    <div class="col-md-6">
+                      <div id="printcalculation" style="display: none;">
+                        <div class="col-md-12">
+                          <div class="row">
+                            <div class="col-md-6">
+                              <label for="cm" class="form-label"><b>
+                                  cm </b></label>
+                              <br>
+                              <input id="cm" type="text" class="form-control" name="cm" required autocomplete="off">
+                            </div>
+                            <div class="col-md-6">
+                              <label for="columns" class="form-label"><b>col</b></label>
+                              <input id="columns" type="text" class="form-control" name="columns" required
+                                autocomplete="off">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12" id="videoSecondsContainer" style="display: none;">
+                        <label for="seconds" class="form-label"><b>Number of Seconds:</b></label>
+                        <input id="seconds" type="text" class="form-control" name="seconds" required autocomplete="off">
+                      </div>
                     </div>
                   </div>
 
 
-                  <div class="col-md-6" id="pageInfoContainer" style="display:none;">
-                    <label for="page_info" class="form-label"><b>Page Information</b></label>
-                    <div>
-                      <select name="page_info" id="page_info" class="form-control" data-placeholder="Select page info">
-                        <option value="" disabled selected>--Select Page Info--</option>
-                        @foreach($page_info as $type)
-                        <option value="{{ $type->id }}">{{ $type->page_info_name }}</option>
-                        @endforeach
-                      </select>
+                  <div class="row">
+                    <div class="col-md-6" id="pageInfoContainer" style="display:none;">
+                      <label for="page_info" class="form-label"><b>Page Information</b></label>
+                      <div>
+                        <select name="page_info" id="page_info" class="form-control"
+                          data-placeholder="Select page info">
+                          <option value="" disabled selected>--Select Page Info--</option>
+                          @foreach($page_info as $type)
+                          <option value="{{ $type->id }}">{{ $type->page_info_name }}</option>
+                          @endforeach
+                        </select>
+                      </div>
                     </div>
                   </div>
 
+                  <div class="col-md-12 mt-3 mb-3">
+                    <b>Assign Organization(s) to Publishing Dates</b>
+                    <div class="border p-4 rounded">
+                      <div class="row">
+                        <div class="col-6">
+                          <small class="text-muted d-block mt-1">
+                            *Number next to each organization shows total ads allotted in past 7 days
+                          </small>
+                        </div>
+                        <div class="col-6">
+                          <div class="text-end mb-3">
+                            <button type="button" class="btn btn-outline-primary" onclick="addAssignedNewsRow()">
+                              <i class="fas fa-plus-circle"></i> Add Row
+                            </button>
+                          </div>
+                        </div>
+                      </div>
 
-                  <div class="col-md-6">
+                      <!-- Table for Date and Newspaper Assignments -->
+                      <div class="table-responsive">
+                        <table class="table table-striped table-bordered" id="assignedNewsTable">
+                          <thead class="thead-light">
+                            <tr>
+                              <th width="30%">Positively On</th>
+                              <th width="60%">Organization(s)</th>
+                              <th width="10%">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody id="assignedNewsTableBody"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <b>Insertion Counts</b>
+                    <table class="table table-bordered" id="insertionCountsTable">
+                      <thead>
+                        <tr>
+                          <th>Organization(S)</th>
+                          <th>Insertions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <!-- Rows will be dynamically added -->
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="col-md-12">
                     <label for="remarks" class="form-label"><b>Remarks</b></label>
                     <input id="remarks" type="text" class="form-control" name="remarks" autocomplete='off'>
                   </div>

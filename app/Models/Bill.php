@@ -10,7 +10,7 @@ class Bill extends Model
     use HasFactory;
 
     protected $table = 'bills';
-    protected $fillable = ['bill_no', 'bill_date', 'ad_id', 'bill_memo_no', 'gst_rate'];
+    protected $fillable = ['bill_no', 'bill_date', 'ad_id', 'bill_memo_no', 'gst_rate', 'total_amount'];
 
     public function advertisement()
     {

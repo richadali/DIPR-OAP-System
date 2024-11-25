@@ -84,108 +84,125 @@ class AdvertisementController extends Controller
 
     public function StoreData(StoreAdRequest $request)
     {
-        $validator = Validator::make($request->all(), $request->rules());
+        // Log the entire request data to check the incoming payload
+        \Log::debug($request->all());
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        } else {
-            $positivelyDates = json_decode($request->positively, true);
-            $finYear = $this->getCurrentFinancialYear();
-            DB::beginTransaction();
+        // Validate the request data
+        $validatedData = $request->validated();
 
-            try {
-                if (isset($request->id)) { // Edit an advertisement
-                    $sql_count = Advertisement::where('id', $request->id)->count();
+        // Retrieve the newspaper data from the request
+        $newspaperData = $validatedData['newspaper'] ?? null;
 
-                    if ($sql_count > 0) {
-                        Advertisement::whereId($request->id)->update([
-                            'issue_date' => $request->issue_date,
-                            'department_id' => $request->department,
-                            'cm' => $request->cm,
-                            'columns' => $request->columns,
-                            'seconds' => $request->seconds,
-                            'amount' => $request->amount,
-                            'ref_no' => $request->ref_no,
-                            'ref_date' => $request->ref_date,
-                            'positively_on' => implode(',', $positivelyDates),
-                            'remarks' => $request->remarks,
-                            'no_of_entries' => $request->insertions,
-                            'advertisement_type_id' => $request->advertisementType,
-                            'subject_id' => $request->subject,
-                            'ad_category_id' => $request->category,
-                            'color_id' => $request->color,
-                            'page_info_id' => $request->page_info,
-                            'payment_by' => $request->payment_by,
-                            'mipr_no' => $request->mipr_no,
-                            'updated_at' => now(),
-                        ]);
+        // Check if the newspaper data is provided and is in the correct format
+        if ($newspaperData) {
+            // Decode the JSON string into an array
+            $newspaperData = json_decode($newspaperData, true);
 
-                        $advertisement = Advertisement::findOrFail($request->id);
-                        $advertisement->assigned_news()->delete();
+            // Check if the decoded data is an array
+            if (is_array($newspaperData)) {
+                DB::beginTransaction();
 
-                        $newAssignedNews = $request->newspaper;
-                        foreach ($newAssignedNews as $assignedNewsId) {
-                            $assignedNews = new AssignedNews();
-                            $assignedNews->advertisement_id = $advertisement->id;
-                            $assignedNews->empanelled_id = $assignedNewsId;
-                            $assignedNews->save();
+                try {
+                    if (isset($request->id)) { // Edit an advertisement
+                        $sql_count = Advertisement::where('id', $request->id)->count();
+
+                        if ($sql_count > 0) {
+                            // Update existing advertisement record
+                            Advertisement::whereId($request->id)->update([
+                                'issue_date' => $request->issue_date,
+                                'department_id' => $request->department,
+                                'cm' => $request->cm,
+                                'columns' => $request->columns,
+                                'seconds' => $request->seconds,
+                                'ref_no' => $request->ref_no,
+                                'ref_date' => $request->ref_date,
+                                'positively_on' => $request->positively,  // Store as single date
+                                'remarks' => $request->remarks,
+                                'advertisement_type_id' => $request->advertisementType,
+                                'subject_id' => $request->subject,
+                                'ad_category_id' => $request->category,
+                                'color_id' => $request->color,
+                                'page_info_id' => $request->page_info,
+                                'payment_by' => $request->payment_by,
+                                'mipr_no' => $request->mipr_no,
+                                'updated_at' => now(),
+                            ]);
+
+                            // Clear previous newspaper assignments
+                            $advertisement = Advertisement::findOrFail($request->id);
+                            $advertisement->assigned_news()->delete();
+
+                            // Assign new newspapers along with the 'positively_on' date
+                            foreach ($newspaperData as $assignedNews) {
+                                $assignedNewsRecord = new AssignedNews();
+                                $assignedNewsRecord->advertisement_id = $advertisement->id;
+                                $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
+                                $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
+                                $assignedNewsRecord->save();
+                            }
+
+                            DB::commit();
+                            return response()->json(["flag" => "YY"]);
+                        } else {
+                            DB::rollback();
+                            return response()->json(["flag" => "NN"]);
+                        }
+                    } else { // Create new advertisement
+                        // Create a new advertisement record
+                        $advertisement = new Advertisement();
+                        $advertisement->user_id = auth()->user()->id;
+                        $advertisement->department_id = $request->department;
+                        $advertisement->issue_date = $request->issue_date;
+                        $advertisement->cm = $request->cm;
+                        $advertisement->columns = $request->columns;
+                        $advertisement->seconds = $request->seconds;
+                        $advertisement->ref_no = $request->ref_no;
+                        $advertisement->ref_date = $request->ref_date;
+                        $advertisement->remarks = $request->remarks;
+                        $advertisement->advertisement_type_id = $request->advertisementType;
+                        $advertisement->subject_id = $request->subject;
+                        $advertisement->ad_category_id = $request->category;
+                        $advertisement->color_id = $request->color;
+                        $advertisement->page_info_id = $request->page_info;
+                        $advertisement->payment_by = $request->payment_by;
+                        $advertisement->mipr_no = $request->mipr_no;
+                        $advertisement->save();
+
+                        // Assign newspapers if provided
+                        foreach ($newspaperData as $assignedNews) {
+                            $assignedNewsRecord = new AssignedNews();
+                            $assignedNewsRecord->advertisement_id = $advertisement->id;
+                            $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
+                            $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
+                            $assignedNewsRecord->save();
+                        }
+
+                        // Increment the MIPR number after saving the advertisement
+                        $finYear = $this->getCurrentFinancialYear();
+                        $miprRow = DB::table('mipr_no')->where('fin_year', $finYear)->first();
+                        if (!is_null($miprRow)) {
+                            $currentMiprNo = (int)$miprRow->mipr_no;
+                            $newMiprNo = str_pad($currentMiprNo + 1, 4, '0', STR_PAD_LEFT);
+                            DB::table('mipr_no')->where('fin_year', $finYear)->update(['mipr_no' => $newMiprNo]);
                         }
 
                         DB::commit();
-                        return response()->json(["flag" => "YY"]);
-                    } else {
-                        DB::rollback();
-                        return response()->json(["flag" => "NN"]);
+                        return response()->json(["flag" => "Y"]);
                     }
-                } else {    // Create new advertisement
-                    $validatedData = $request->validated();
-
-                    $advertisement = new Advertisement();
-                    $advertisement->user_id = auth()->user()->id;
-                    $advertisement->department_id = $request->department;
-                    $advertisement->issue_date = $request->issue_date;
-                    $advertisement->cm = $request->cm;
-                    $advertisement->columns = $request->columns;
-                    $advertisement->seconds = $request->seconds;
-                    $advertisement->amount = $request->amount;
-                    $advertisement->ref_no = $request->ref_no;
-                    $advertisement->ref_date = $request->ref_date;
-                    $advertisement->positively_on = implode(',', $positivelyDates);
-                    $advertisement->remarks = $request->remarks;
-                    $advertisement->advertisement_type_id = $request->advertisementType;
-                    $advertisement->subject_id = $request->subject;
-                    $advertisement->ad_category_id = $request->category;
-                    $advertisement->no_of_entries = $request->insertions;
-                    $advertisement->color_id = $request->color;
-                    $advertisement->page_info_id = $request->page_info;
-                    $advertisement->payment_by = $request->payment_by;
-                    $advertisement->mipr_no = $request->mipr_no;
-                    $advertisement->save();
-
-                    if (isset($validatedData['newspaper']) && is_array($validatedData['newspaper'])) {
-                        foreach ($validatedData['newspaper'] as $assignedNewsId) {
-                            $assignedNews = new AssignedNews();
-                            $assignedNews->advertisement_id = $advertisement->id;
-                            $assignedNews->empanelled_id = $assignedNewsId;
-                            $assignedNews->save();
-                        }
-                    }
-
-                    // Increment the MIPR number after successfully saving the advertisement
-                    $miprRow = DB::table('mipr_no')->where('fin_year', $finYear)->first();
-                    if (!is_null($miprRow)) {
-                        $currentMiprNo = (int)$miprRow->mipr_no;
-                        $newMiprNo = str_pad($currentMiprNo + 1, 4, '0', STR_PAD_LEFT);
-                        DB::table('mipr_no')->where('fin_year', $finYear)->update(['mipr_no' => $newMiprNo]);
-                    }
-
-                    DB::commit();
-                    return response()->json(["flag" => "Y"]);
+                } catch (\Exception $e) {
+                    DB::rollback();
+                    \Log::error("Error occurred: " . $e->getMessage());
+                    return response()->json(["error" => $e->getMessage()], 500);
                 }
-            } catch (\Exception $e) {
-                DB::rollback();
-                return response()->json($e);
+            } else {
+                // If the newspaper data is not in a valid format
+                \Log::error("Invalid newspaper data: " . $validatedData['newspaper']);
+                return response()->json(['error' => 'Invalid newspaper data'], 422);
             }
+        } else {
+            // If the newspaper data is missing
+            \Log::error("No newspaper data found in the request.");
+            return response()->json(['error' => 'No newspaper data found'], 422);
         }
     }
 
@@ -272,16 +289,14 @@ class AdvertisementController extends Controller
         return response()->json($total_amount);
     }
 
-    public function getNewspapersByType(Request $request)
+    public function getNewspapers(Request $request)
     {
         $typeId = $request->input('type_id');
         $sevenDaysAgo = Carbon::now()->subDays(7);
 
-        // Fetch organizations and count advertisements in the last 7 days
-        $newspapers = Empanelled::where('newspaper_type_id', $typeId)
-            ->withCount(['assigned_news as advertisement_count' => function ($query) use ($sevenDaysAgo) {
-                $query->where('created_at', '>=', $sevenDaysAgo);
-            }])
+        $newspapers = Empanelled::withCount(['assigned_news as advertisement_count' => function ($query) use ($sevenDaysAgo) {
+            $query->where('created_at', '>=', $sevenDaysAgo);
+        }])
             ->get();
 
         $response = $newspapers->map(function ($newspaper) {

@@ -34,7 +34,7 @@ class BillsController extends Controller
         $user = Auth::user();
 
         $billsQuery = Bill::with(['advertisement.department', 'empanelled'])
-            ->select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.issue_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by')
+            ->select('b.id', 'd.dept_name', 'e.news_name', 'a.mipr_no', 'a.issue_date', 'b.bill_no', 'b.bill_date', 'a.payment_by')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
@@ -70,16 +70,25 @@ class BillsController extends Controller
 
     public function getNewspaper(Request $request)
     {
-
         $ad_id = $request->ad_id;
         $advertisement = Advertisement::with(['assigned_news.empanelled'])
             ->find($ad_id);
 
-        return response()->json($advertisement)->withHeaders([
+        // Get the assigned news data
+        $assignedNews = $advertisement->assigned_news;
+
+        // Remove duplicates based on empanelled.id
+        $uniqueAssignedNews = $assignedNews->unique(function ($news) {
+            return $news->empanelled->id;
+        });
+
+        // Return filtered data in the response
+        return response()->json(['assigned_news' => $uniqueAssignedNews])->withHeaders([
             'Cache-Control' => 'max-age=15, public',
             'Expires' => gmdate('D, d M Y H:i:s', time() + 15) . ' IST',
         ]);
     }
+
 
     public function getBillDetails(Request $request)
     {
@@ -113,6 +122,9 @@ class BillsController extends Controller
                         Bill::whereId($request->id)->update([
                             'bill_no' => ($request->bill_no),
                             'bill_date' => ($request->bill_date),
+                            'gst_rate' => ($request->gst_rate),
+                            'total_amount' => ($request->total_amount),
+                            'bill_memo_no' => ($request->bill_memo_no),
                             'user_id' => $user->id
                         ]);
                         DB::commit();
@@ -139,6 +151,7 @@ class BillsController extends Controller
                     } else {
                         $bill->gst_rate = $request->gst_rate;
                     }
+                    $bill->total_amount = $request->total_amount;
                     $bill->user_id = $user->id;
                     $bill->save();
 

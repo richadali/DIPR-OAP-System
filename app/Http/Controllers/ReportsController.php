@@ -42,12 +42,27 @@ class ReportsController extends Controller
 
         foreach ($advertisements as $advertisement) {
             $advertisement->issue_date = \Carbon\Carbon::parse($advertisement->issue_date);
+
+            // Group assigned news by newspaper
+            $advertisement->grouped_rows = $advertisement->assigned_news->groupBy(function ($news) {
+                return $news->empanelled->news_name;
+            })->map(function ($group, $newspaper) {
+                return [
+                    'newspaper' => $newspaper,
+                    'positively_on' => $group->pluck('positively_on')->map(fn($date) => \Carbon\Carbon::parse($date)->format('d-m-Y'))->implode(', '),
+                    'no_of_insertions' => $group->count(),
+                ];
+            });
         }
 
         $pdf = PDF::loadView('reports.issue_register', compact('advertisements'));
 
         return $pdf->stream('issue_register.pdf', array('Attachment' => 0));
     }
+
+
+
+
 
     public function exportIssueRegisterToExcel(Request $request, $from, $to)
     {
@@ -59,9 +74,39 @@ class ReportsController extends Controller
             ->orderBy('advertisement.id')
             ->get();
 
-        // Export data to Excel
-        return Excel::download(new IssueRegisterExport($advertisements), 'issue_register.xlsx');
+        // Flatten advertisement data for Excel
+        $flattenedData = []; // Array for flattened data
+
+        foreach ($advertisements as $advertisement) {
+            // Group assigned news by newspaper
+            $groupedNews = $advertisement->assigned_news->groupBy(function ($news) {
+                return $news->empanelled->news_name;
+            });
+
+            foreach ($groupedNews as $newspaper => $group) {
+                $flattenedData[] = [
+                    'mipr_no' => $advertisement->mipr_no,
+                    'issue_date' => Carbon::parse($advertisement->issue_date)->format('d-m-Y'),
+                    'dept_name' => $advertisement->department->dept_name,
+                    'size_seconds' => !empty($advertisement->cm) && !empty($advertisement->columns)
+                        ? $advertisement->cm . ' x ' . $advertisement->columns
+                        : (!empty($advertisement->seconds) ? $advertisement->seconds . ' s' : ''),
+                    'subject' => $advertisement->subject->subject_name ?? '',
+                    'ref_no_date' => $advertisement->ref_no . ' Dt. ' . Carbon::parse($advertisement->ref_date)->format('d-m-Y'),
+                    'newspaper' => $newspaper,
+                    'positively_on' => $group->pluck('positively_on')->map(fn($date) => Carbon::parse($date)->format('d-m-Y'))->implode(', '),
+                    'no_of_insertions' => $group->count(),
+                    'remarks' => $advertisement->remarks ?? '',
+                ];
+            }
+        }
+
+        // Convert flattened data to a collection and pass to the export class
+        $flattenedData = collect($flattenedData);
+
+        return Excel::download(new IssueRegisterExport($flattenedData), 'issue_register.xlsx');
     }
+
 
 
     public function ViewIssueRegister()

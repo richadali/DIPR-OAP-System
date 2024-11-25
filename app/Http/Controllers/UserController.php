@@ -129,6 +129,6 @@ class UserController extends Controller
         $page_info = PageInfo::all();
         $department_categories = DepartmentCategory::all();
         $newspaper_types = NewsType::all();
-        return view('modules.user.advertisement')->with(compact('role', 'newspapers', 'subjects', 'categories', 'advertisementType', 'color', 'page_info','department_categories','newspaper_types'));
+        return view('modules.user.advertisement')->with(compact('role', 'newspapers', 'subjects', 'categories', 'advertisementType', 'color', 'page_info', 'department_categories', 'newspaper_types'));
     }
 }

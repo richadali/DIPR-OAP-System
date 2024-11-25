@@ -6,16 +6,6 @@ $(document).ready(function () {
         $("#id").val("");
     });
 
-    // $("#paid_by").on("change", function () {
-    //     if ($(this).val() == "O") {
-    //         $("#manual_payment_head").show();
-    //         $("#manual_paid_by").attr("required", "required");
-    //     } else {
-    //         $("#manual_payment_head").hide();
-    //         $("#manual_paid_by").removeAttr("required");
-    //     }
-    // });
-
     $(document).ready(function () {
         $("#bill_date").datepicker({
             dateFormat: "dd-mm-yy",
@@ -114,7 +104,6 @@ $(document).ready(function () {
     $("#ad_id").on("change", function () {
         getNewspaper();
         getDeptLetterNo();
-        getAmount();
     });
 
     function getDeptLetterNo() {
@@ -200,7 +189,6 @@ $(document).ready(function () {
         });
     });
 
-    console.log("Script Loaded"); // Check if this prints
     const amountInput = document.getElementById("amount");
     const gstRateSelect = document.getElementById("gst_rate");
     const totalAmountInput = document.getElementById("total_amount");
@@ -225,10 +213,6 @@ $(document).ready(function () {
     $("#bill-form").on("submit", function (e) {
         e.preventDefault();
         var formData = new FormData(this);
-        // Add manual payment head to formData if "Others" is selected
-        // if ($("#paid_by").val() == "O") {
-        //     formData.append("paid_by", $("#manual_paid_by").val());
-        // }
         $.ajax({
             type: "POST",
             url: "/bill-store-data",
@@ -353,4 +337,14 @@ $(document).ready(function () {
     $("#body").click(function (e) {
         $(".msg2").hide();
     });
+});
+
+//---------------- VALIDATING FIELDS
+
+$("#amount").on("input", function () {
+    $(this).val(
+        $(this)
+            .val()
+            .replace(/[^0-9.]/g, "")
+    );
 });

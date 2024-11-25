@@ -8,6 +8,9 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithCustomStartCell;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class IssueRegisterExport implements WithMultipleSheets
@@ -28,7 +31,7 @@ class IssueRegisterExport implements WithMultipleSheets
 
         // Group advertisements by month and year
         $groupedAdvertisements = $this->advertisements->groupBy(function ($advertisement) {
-            return Carbon::parse($advertisement->issue_date)->format('F Y'); // Group by month and year
+            return Carbon::parse($advertisement['issue_date'])->format('F Y'); // Group by month and year
         });
 
         // Create a sheet for each month
@@ -40,87 +43,131 @@ class IssueRegisterExport implements WithMultipleSheets
     }
 }
 
-class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, WithColumnWidths
-{
-    protected $advertisements;
-    protected $sheetTitle;
 
-    public function __construct($advertisements, $sheetTitle)
+class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, WithColumnWidths, WithCustomStartCell, WithEvents
+{
+    protected $data;
+
+    public function __construct($data)
     {
-        $this->advertisements = $advertisements;
-        $this->sheetTitle = $sheetTitle;
+        $this->data = $data;
+    }
+
+    public function startCell(): string
+    {
+        return 'A1'; // Start at cell A1
     }
 
     public function collection()
     {
-        return $this->advertisements->map(function ($advertisement) {
-            return [
-                'MIPR No' => $advertisement->mipr_no,
-                'Date of issue' => Carbon::parse($advertisement->issue_date)->format('d-m-Y'),
-                'Name of Department Concerned' => $advertisement->department->dept_name,
-                'Size/Seconds' => !empty($advertisement->cm) && !empty($advertisement->columns) ?
-                    $advertisement->cm . ' x ' . $advertisement->columns : (!empty($advertisement->seconds) ? $advertisement->seconds . ' s' : ''),
-                'Subject' => $advertisement->subject->subject_name ?? '',
-                'Ref. No & Date' => $advertisement->ref_no . ' Dt. ' . Carbon::parse($advertisement->ref_date)->format('d-m-Y'),
-                'Positively on' => $advertisement->positively_on,
-                'No of Insertion' => $advertisement->no_of_entries,
-                'Issued to Organization' => $this->getIssuedToOrganization($advertisement),
-                'Remarks' => $advertisement->remarks ?? '',
-            ];
-        });
+        $groupedData = [];
+        $lastMiprNo = null;
+
+        foreach ($this->data as $row) {
+            if ($lastMiprNo !== $row['mipr_no']) {
+                // Add the full details for the first occurrence of MIPR No
+                $groupedData[] = $row;
+                $lastMiprNo = $row['mipr_no'];
+            } else {
+                // Add only the split columns for subsequent occurrences of MIPR No
+                $groupedData[] = [
+                    'mipr_no' => '',
+                    'issue_date' => '',
+                    'dept_name' => '',
+                    'size_seconds' => '',
+                    'subject' => '',
+                    'ref_no_date' => '',
+                    'newspaper' => $row['newspaper'],
+                    'positively_on' => $row['positively_on'],
+                    'no_of_insertions' => $row['no_of_insertions'],
+                    'remarks' => '',
+                ];
+            }
+        }
+
+        return collect($groupedData);
     }
 
     public function headings(): array
     {
         return [
             'MIPR No',
-            'Date of issue',
+            'Date of Issue',
             'Name of Department Concerned',
             'Size/Seconds',
             'Subject',
             'Ref. No & Date',
-            'Positively on',
-            'No of Insertion',
-            'Issued to Organization',
+            'Newspaper',
+            'Positively On',
+            'No of Insertions',
             'Remarks',
         ];
     }
 
     public function styles(Worksheet $sheet)
     {
-        return [
-            1 => [
-                'font' => [
-                    'bold' => true,
-                    'size' => 12,
-                ],
-                'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                ],
-            ],
-        ];
+        // Styling for the header row
+        $sheet->getStyle('A1:J1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 12],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+        ]);
     }
 
     public function columnWidths(): array
     {
         return [
-            'A' => 15,  // MIPR No
-            'B' => 20,  // Date of issue
-            'C' => 30,  // Name of Department Concerned
-            'D' => 25,  // Size in cm x col
-            'E' => 25,  // Subject
-            'F' => 30,  // Ref. No & Date
-            'G' => 25,  // Positively on
-            'H' => 20,  // No of Insertion
-            'I' => 40,  // Issued to Organization
-            'J' => 30,  // Remarks
+            'A' => 15, // MIPR No
+            'B' => 20, // Date of Issue
+            'C' => 40, // Name of Department Concerned
+            'D' => 15, // Size/Seconds
+            'E' => 30, // Subject
+            'F' => 30, // Ref. No & Date
+            'G' => 25, // Newspaper
+            'H' => 25, // Positively On
+            'I' => 20, // No of Insertions
+            'J' => 30, // Remarks
         ];
     }
 
-    private function getIssuedToOrganization($advertisement)
+    public function registerEvents(): array
     {
-        return $advertisement->assigned_news->map(function ($assignedNews) {
-            return $assignedNews->empanelled->news_name;
-        })->implode(', ') ?? 'N/A';
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $rowIndex = 2; // Start from the first data row
+                $lastMiprNo = null;
+                $mergeStartRow = 2;
+
+                foreach ($this->data as $index => $row) {
+                    if ($lastMiprNo !== $row['mipr_no']) {
+                        // Merge cells for non-split columns when MIPR No changes
+                        if ($index > 0) {
+                            $sheet->mergeCells("A{$mergeStartRow}:A" . ($rowIndex - 1));
+                            $sheet->mergeCells("B{$mergeStartRow}:B" . ($rowIndex - 1));
+                            $sheet->mergeCells("C{$mergeStartRow}:C" . ($rowIndex - 1));
+                            $sheet->mergeCells("D{$mergeStartRow}:D" . ($rowIndex - 1));
+                            $sheet->mergeCells("E{$mergeStartRow}:E" . ($rowIndex - 1));
+                            $sheet->mergeCells("F{$mergeStartRow}:F" . ($rowIndex - 1));
+                            $sheet->mergeCells("J{$mergeStartRow}:J" . ($rowIndex - 1));
+                        }
+
+                        // Update the starting row for the next merge
+                        $mergeStartRow = $rowIndex;
+                    }
+
+                    $lastMiprNo = $row['mipr_no'];
+                    $rowIndex++;
+                }
+
+                // Final merge for the last MIPR No
+                $sheet->mergeCells("A{$mergeStartRow}:A" . ($rowIndex - 1));
+                $sheet->mergeCells("B{$mergeStartRow}:B" . ($rowIndex - 1));
+                $sheet->mergeCells("C{$mergeStartRow}:C" . ($rowIndex - 1));
+                $sheet->mergeCells("D{$mergeStartRow}:D" . ($rowIndex - 1));
+                $sheet->mergeCells("E{$mergeStartRow}:E" . ($rowIndex - 1));
+                $sheet->mergeCells("F{$mergeStartRow}:F" . ($rowIndex - 1));
+                $sheet->mergeCells("J{$mergeStartRow}:J" . ($rowIndex - 1));
+            },
+        ];
     }
 }

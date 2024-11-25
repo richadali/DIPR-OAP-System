@@ -36,6 +36,7 @@
   <!-- Template Main CSS File -->
   <link href="{{ asset('css/select2.min.css') }}" rel="stylesheet">
   <link href="{{asset('assets/css/style.css')}}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.7/dist/sweetalert2.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.27.3/dist/apexcharts.min.css">
 

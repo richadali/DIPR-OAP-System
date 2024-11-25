@@ -441,8 +441,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/advertisement-delete-data', [AdvertisementController::class, 'DeleteData'])
         ->name('deleteAdvertisement');
 
-    Route::post('/get-newspapers-by-type', [AdvertisementController::class, 'getNewspapersByType'])
-        ->name('get-newspapers-by-type');
+    Route::post('/get-newspapers', [AdvertisementController::class, 'getNewspapers'])
+        ->name('get-newspapers');
 
     Route::post('/update-advertisement-publish-status', [AdvertisementController::class, 'updateAdvertisementStatus']);
 

@@ -35,36 +35,45 @@
             white-space: pre-wrap;
         }
 
-        h1 {
+        h3 {
             text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <h1>Issue of Advertisement Register</h1>
-    <table>
+    <h3>Issue of Advertisement Register</h3>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
         <thead>
             <tr>
                 <th width="10%">Mipr No</th>
                 <th width="8%">Date of Issue</th>
-                <th width="22%">Name of Department concerned</th>
+                <th width="22%">Name of Department Concerned</th>
                 <th width="6%">Size/Secs</th>
                 <th width="10%">Subject</th>
                 <th width="10%">Ref. No & Date</th>
-                <th width="8%">Positively on</th>
+                <th width="10%">Newspaper</th>
+                <th width="8%">Positively On</th>
                 <th width="5%">No of Insertion</th>
-                <th width="18%">Issued to Organization</th>
                 <th width="10%">Remarks</th>
             </tr>
         </thead>
         <tbody>
             @foreach($advertisements as $advertisement)
+            @php $firstRow = true; @endphp
+            @foreach($advertisement->grouped_rows as $row)
             <tr>
-                <td align=center> {{ $advertisement->mipr_no }}</td>
-                <td align=center> {{ $advertisement->issue_date->format('d-m-Y') }}</td>
-                <td> {{ $advertisement->department->dept_name }}</td>
-                <td align="center">
+                @if($firstRow)
+                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->mipr_no }}
+                </td>
+                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->issue_date->format('d-m-Y') }}
+                </td>
+                <td rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->department->dept_name }}
+                </td>
+                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
                     @if(!empty($advertisement->cm) && !empty($advertisement->columns))
                     {{ $advertisement->cm }}x{{ $advertisement->columns }}
                     @elseif(!empty($advertisement->seconds))
@@ -73,20 +82,35 @@
                     &nbsp;
                     @endif
                 </td>
-                <td align=center> {{ $advertisement->subject->subject_name ?? ' '}}</td>
-                <td align=center class="long-text ref-no"> {{ $advertisement->ref_no . ' Dated ' .
-                    $advertisement->ref_date }} </td>
-                <td align=center> {{ $advertisement->positively_on }}</td>
-                <td align=center> {{ $advertisement->no_of_entries }}</td>
-                <td>
-                    {{ implode(', ', $advertisement->assigned_news->pluck('empanelled.news_name')->toArray()) }}
+                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->subject->subject_name ?? ' ' }}
                 </td>
+                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->ref_no . ' Dated ' . $advertisement->ref_date }}
+                </td>
+                @endif
 
-                <td> {{ $advertisement->remarks }}</td>
+                <td>{{ $row['newspaper'] }}</td>
+                <td align="center">{{ $row['positively_on'] }}</td>
+                <td align="center">{{ $row['no_of_insertions'] }}</td>
+
+                @if($firstRow)
+                <td rowspan="{{ $advertisement->grouped_rows->count() }}">
+                    {{ $advertisement->remarks }}
+                </td>
+                @endif
+
+                @php $firstRow = false; @endphp
             </tr>
+            @endforeach
             @endforeach
         </tbody>
     </table>
 </body>
+
+
+
+
+
 
 </html>

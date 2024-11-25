@@ -190,8 +190,8 @@
                   <div class="col-md-6">
                     <label for="amount" class="form-label"><b>Amount</b></label>
                     <div>
-                      <input type="text" name="amount" id="amount" class="form-control readonly-input"
-                        data-placeholder="Amount" value="0" required>
+                      <input type="text" name="amount" id="amount" class="form-control" data-placeholder="Amount"
+                        required>
                     </div>
                   </div>
 
@@ -212,7 +212,7 @@
                     <label for="total_amount" class="form-label"><b>Total Amount</b></label>
                     <div>
                       <input type="text" name="total_amount" id="total_amount" class="form-control readonly-input"
-                        data-placeholder="Total Amount" value="0" required readonly>
+                        data-placeholder="Total Amount" required readonly>
                     </div>
                   </div>
 
@@ -233,23 +233,6 @@
                       autocomplete='off'>
                   </div>
 
-
-                  {{-- <div class="col-md-6">
-                    <label for="paid_by" class="form-label"><b>Payment Head:</b></label>
-                    <div>
-                      <select name="paid_by" id='paid_by' class="form-control " data-placeholder="Select a paid_by"
-                        required>
-                        <option value="" disabled selected>--Select Payment Head--</option>
-                        <option value="D">DIPR</option>
-                        <option value="O">Others</option>
-                      </select>
-                    </div>
-                  </div> --}}
-
-                  {{-- <div class="col-md-6" id="manual_payment_head" style="display: none;">
-                    <label for="manual_paid_by" class="form-label"><b>Enter Payment Head:</b></label>
-                    <input type="text" class="form-control" id="manual_paid_by" name="manual_paid_by">
-                  </div> --}}
                   <br>
                   <div class="text-center">
                     <button type="submit" class="btn btn-primary btn-sm">Submit</button>

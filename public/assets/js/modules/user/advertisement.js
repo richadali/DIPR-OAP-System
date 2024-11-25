@@ -1,88 +1,29 @@
 $(document).ready(function () {
     $(".select2").select2();
 
-    initializeAdvertisementFormLogic();
-
-    // Handle the 'Select All' option logic
-    $("#newspaper").on("change", function () {
-        var selectedValues = $(this).val(); // Get selected values
-        var selectAllValue = "select-all"; // Define 'Select All' value
-        var allOptions = $("#newspaper > option").not('[value="select-all"]'); // All options except 'Select All'
-
-        // Check if 'Select All' is selected
-        if (selectedValues && selectedValues.includes(selectAllValue)) {
-            // Select all options
-            allOptions.prop("selected", true);
-            $(this).val(
-                allOptions
-                    .map(function () {
-                        return this.value; // Get the value of each option except 'Select All'
-                    })
-                    .get()
-            );
-        }
-
-        // If 'Select All' is deselected or any individual item is deselected
-        else if (!selectedValues || selectedValues.length < allOptions.length) {
-            $('#newspaper option[value="select-all"]').prop("selected", false); // Deselect 'Select All'
-        }
-
-        // Trigger change to update the select2 dropdown display
-        $(this).trigger("change.select2");
-    });
-
     $(document).on("click", "#users-tab", function (e) {
-        $("#email").prop("disabled", false);
         $("#advertisement-form").trigger("reset");
         $("#id").val("");
         getCurrentMIPR();
+    });
+
+    $("#issue_date").datepicker({
+        dateFormat: "dd-mm-yy",
+        changeYear: true,
+        changeMonth: true,
+        minDate: 0,
+    });
+
+    $("#ref_date").datepicker({
+        dateFormat: "dd-mm-yy",
+        changeYear: true,
+        changeMonth: true,
     });
 
     $.ajaxSetup({
         headers: {
             "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
         },
-    });
-    $(document).ready(function () {
-        $("#issue_date").datepicker({
-            dateFormat: "dd-mm-yy",
-            changeYear: true,
-            changeMonth: true,
-            minDate: 0,
-        });
-
-        $("#ref_date").datepicker({
-            dateFormat: "dd-mm-yy",
-            changeYear: true,
-            changeMonth: true,
-        });
-
-        $("#positively").multiDatesPicker({
-            dateFormat: "dd-mm-yy",
-            changeYear: false,
-            changeMonth: true,
-            minDate: null,
-            onSelect: function () {
-                updateInsertions();
-            },
-            onClose: function () {
-                updateInsertions();
-            },
-            onChangeMonthYear: function () {
-                updateInsertions();
-            },
-        });
-
-        function updateInsertions() {
-            var selectedDates = $("#positively").val();
-            var insertions = 0; // Start with 0 insertions
-            if (selectedDates) {
-                var datesArray = selectedDates.split(",");
-                insertions = datesArray.length;
-            }
-            console.log("Number of insertions:", insertions);
-            $("#insertions").val(insertions);
-        }
     });
 
     $.ajax({
@@ -120,11 +61,6 @@ $(document).ready(function () {
                     "</td>" +
                     '<td class="text-center" width="30%">' +
                     advertisement.department.dept_name +
-                    "</td>" +
-                    '<td class="text-center">' +
-                    (advertisement.amount !== null
-                        ? advertisement.amount
-                        : "NA") +
                     "</td>" +
                     '<td class="text-center">' +
                     (advertisement.status === "Cancelled"
@@ -180,7 +116,6 @@ $(document).ready(function () {
 
             $(".user-table tbody").append(table);
 
-            // Initialize DataTable
             $(".user-table").DataTable({
                 destroy: true,
                 processing: true,
@@ -193,9 +128,8 @@ $(document).ready(function () {
                 autoWidth: false,
             });
 
-            // Eye icon click event for opening the modal
             $(".advertisement-view").on("click", function (e) {
-                e.stopPropagation(); // Prevent triggering the row click
+                e.stopPropagation();
                 var advertisementId = $(this).data("id");
                 showAdvertisementDetails(advertisementId);
             });
@@ -205,10 +139,38 @@ $(document).ready(function () {
     $("#advertisement-form").on("submit", function (e) {
         e.preventDefault();
         var formData = new FormData(this);
-        var positivelyDates = $("#positively").multiDatesPicker("getDates");
-        formData.set("positively", JSON.stringify(positivelyDates));
+
+        // Explicitly remove any existing 'assigned_news' fields from the formData
+        formData.forEach(function (value, key) {
+            if (key.startsWith("assigned_news")) {
+                formData.delete(key); // Remove any assigned_news fields
+            }
+        });
+
+        // Collect the 'newspaper' data from the rows
+        var newspaperData = [];
+        $(".assigned-news-row").each(function () {
+            var positively = $(this).find(".positively-datepicker").val();
+            var selectedNewspapers = $(this)
+                .find("select[name$='[newspaper][]']")
+                .val();
+
+            if (selectedNewspapers && positively) {
+                selectedNewspapers.forEach(function (newspaperId) {
+                    newspaperData.push({
+                        newspaper_id: newspaperId,
+                        positively: positively,
+                    });
+                });
+            }
+        });
+
+        // Append the 'newspaper' data as a single field
+        formData.append("newspaper", JSON.stringify(newspaperData));
+
+        // Check the final data structure before sending it
         for (const [key, value] of formData.entries()) {
-            console.log(key + " : " + value);
+            console.log(key + " : " + value); // Log the data to confirm structure
         }
         $.ajax({
             type: "POST",
@@ -220,7 +182,6 @@ $(document).ready(function () {
             success: function (data) {
                 console.log(data);
                 if (data["flag"] == "Y" || data["flag"] == "YY") {
-                    // Success for creation or editing of advertisement
                     $(".table_msg1")
                         .toggle(data["flag"] == "Y")
                         .delay(2000)
@@ -241,7 +202,6 @@ $(document).ready(function () {
                     $("#modalCm").text($("#cm").val());
                     $("#modalColumns").text($("#columns").val());
                     $("#modalSeconds").text($("#seconds").val());
-                    $("#modalAmount").text($("#amount").val());
                     $("#modalSubject").text(
                         $("#subject option:selected").text()
                     );
@@ -283,7 +243,6 @@ $(document).ready(function () {
                     data["flag"] == "VE" ||
                     data["flag"] == "NN"
                 ) {
-                    // Error while creation or editing of advertisement
                     $(".table_msg2").show().delay(2000).fadeOut();
                     $("#table-form").trigger("reset");
                 }
@@ -307,104 +266,15 @@ $(document).ready(function () {
         });
     });
 
-    $("#category").on("change", function () {
-        updateAmount();
-    });
-
-    $("#cm").on("keyup", function () {
-        updateAmount();
-    });
-
-    $("#columns").on("keyup", function () {
-        updateAmount();
-    });
-    $("#seconds").on("keyup", function () {
-        updateAmount();
-    });
     $("#advertisementType").on("change", function () {
         console.log(
             "Selected advertisementType:",
             $("#advertisementType").val()
         );
-        $("#amount").val("");
         $("#cm").val("");
         $("#columns").val("");
         $("#seconds").val("");
-
-        updateAmount();
     });
-
-    function updateAmount() {
-        var category = $("#category").val();
-        var cm = $("#cm").val();
-        var columns = $("#columns").val();
-        var advertisementType = $("#advertisementType").val();
-
-        if (advertisementType === "6") {
-            console.log("advertisementType = Video Radio");
-            var seconds = $("#seconds").val();
-            if (seconds) {
-                $.ajax({
-                    type: "POST",
-                    url: "/getAmount",
-                    data: {
-                        seconds: seconds,
-                        advertisementType: advertisementType,
-                    },
-                    success: function (response) {
-                        $("#amount").val(response);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error fetching amount:", error);
-                        $("#amount").val("");
-                    },
-                });
-            } else {
-                $("#amount").val("");
-            }
-        } else if (advertisementType === "8") {
-            console.log("advertisementType = Online Media");
-            $.ajax({
-                type: "POST",
-                url: "/getAmount",
-                data: {
-                    advertisementType: advertisementType,
-                },
-                success: function (response) {
-                    $("#amount").val(response);
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error fetching amount:", error);
-                    $("#amount").val("");
-                },
-            });
-        } else if (advertisementType === "7") {
-            console.log("advertisementType = Print");
-            if (category && cm && columns) {
-                $.ajax({
-                    type: "POST",
-                    url: "/getAmount",
-                    data: {
-                        cm: cm,
-                        columns: columns,
-                        category: category,
-                        advertisementType: advertisementType,
-                    },
-                    success: function (response) {
-                        $("#amount").val(response);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error fetching amount:", error);
-                        $("#amount").val("");
-                    },
-                });
-            } else {
-                $("#amount").val("");
-            }
-        } else {
-            $("#amount").val("");
-        }
-    }
 
     $("#formSubmissionModal").on("hidden.bs.modal", function () {
         window.location.reload();
@@ -438,47 +308,15 @@ $(document).ready(function () {
 
                 $("#issue_date").val(formatDateFromDB(data[0]["issue_date"]));
 
-                // Set the department category and trigger change to load departments
                 var categoryId = data[0]["department"]["category_id"];
                 $("#department_category").val(categoryId).trigger("change");
 
-                // Wait for departments to load, then set the selected department
                 var departmentInterval = setInterval(function () {
                     if ($("#department option").length > 1) {
                         $("#department")
                             .val(data[0]["department"]["id"])
                             .trigger("change");
                         clearInterval(departmentInterval);
-                    }
-                }, 100);
-
-                // Retrieve and set news_type
-                if (
-                    data[0]["assigned_news"] &&
-                    data[0]["assigned_news"].length > 0
-                ) {
-                    var newsType =
-                        data[0]["assigned_news"][0]["empanelled"]["news_type"][
-                            "id"
-                        ];
-                    $("#newspaper_type").val(newsType).trigger("change");
-                }
-
-                // Wait for newspapers to load, then set the selected newspapers
-                var newspaperInterval = setInterval(function () {
-                    if ($("#newspaper option").length > 1) {
-                        // Extract selected newspaper IDs from assigned_news data
-                        var selectedNewspaperIds = data[0]["assigned_news"].map(
-                            function (news) {
-                                return news["empanelled"]["id"];
-                            }
-                        );
-                        // Set selected newspapers and refresh Select2
-                        $("#newspaper")
-                            .val(selectedNewspaperIds)
-                            .trigger("change");
-
-                        clearInterval(newspaperInterval); // Stop checking once loaded
                     }
                 }, 100);
 
@@ -490,7 +328,6 @@ $(document).ready(function () {
                 if (data[0]["subject"]) {
                     $("#subject").val(data[0]["subject"]["id"]);
                 }
-                $("#amount").val(data[0]["amount"]);
                 $("#ref_no").val(data[0]["ref_no"]);
                 $("#ref_date").val(formatDateFromDB(data[0]["ref_date"]));
                 $("#positively").val(data[0]["positively_on"]);
@@ -520,8 +357,6 @@ $(document).ready(function () {
     $(document).on("click", ".advertisement-delete", function (e) {
         e.preventDefault();
         var id = $(this).data("id");
-
-        // Show SweetAlert confirmation dialog
         Swal.fire({
             title: "Are you sure?",
             text: "You will need to provide a reason for cancellation.",
@@ -537,7 +372,6 @@ $(document).ready(function () {
             icon: "warning",
         }).then((result) => {
             if (result.isConfirmed) {
-                // Proceed with AJAX request
                 $.ajax({
                     type: "POST",
                     url: "/advertisement-delete-data",
@@ -553,7 +387,6 @@ $(document).ready(function () {
                                 text: "The advertisement has been cancelled.",
                                 icon: "success",
                             }).then(() => {
-                                // Optionally, show a message and reload the page
                                 $(".table_msg3").show();
                                 $(".table_msg3").delay(5000).fadeOut();
                                 setTimeout(function () {
@@ -632,7 +465,6 @@ $(document).ready(function () {
                     );
                 });
 
-                // Reinitialize Select2 after appending new options
                 departmentDropdown.select2({
                     placeholder: "Select Department",
                     allowClear: true,
@@ -641,154 +473,84 @@ $(document).ready(function () {
         });
     });
 
-    $("#newspaper_type").on("change", function () {
-        var typeId = $(this).val();
-        $.ajax({
-            type: "POST",
-            url: "/get-newspapers-by-type",
-            data: { type_id: typeId },
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
-            success: function (response) {
-                var newspaperDropdown = $("#newspaper");
-                newspaperDropdown.empty(); // Clear existing options
+    function initializeAdvertisementFormLogic() {
+        const typeSelect = $("#advertisementType");
+        const categorySelect = $("#category");
 
-                // Append "Select All" option
-                newspaperDropdown.append(
-                    '<option value="select-all">Select All</option>'
-                );
-
-                // Loop through the response and add newspaper options dynamically
-                $.each(response, function (index, newspaper) {
-                    let optionText = `${newspaper.name} (${newspaper.advertisement_count})`;
-
-                    newspaperDropdown.append(
-                        '<option value="' +
-                            newspaper.id +
-                            '">' +
-                            optionText +
-                            "</option>"
-                    );
-                });
-            },
-            error: function (xhr, status, error) {
-                console.error(xhr.responseText);
-            },
+        typeSelect.on("change", function () {
+            if (typeSelect.val() === "7") {
+                $("#printcalculation").show();
+                $("#categoryContainer").show();
+                $("#videoSecondsContainer").hide();
+                $("#subjectContainer").show();
+                $("#colorContainer").show();
+                $("#cm").prop("disabled", false);
+                $("#columns").prop("disabled", false);
+                $("#seconds").prop("disabled", true);
+                $("#category").prop("disabled", false);
+                $("#subject").prop("disabled", false);
+                $("#color").prop("disabled", false);
+                $("#insertions-label").html("<b>No of issues</b>");
+            } else if (typeSelect.val() === "6") {
+                $("#printcalculation").hide();
+                $("#categoryContainer").hide();
+                $("#videoSecondsContainer").show();
+                $("#subjectContainer").hide();
+                $("#colorContainer").hide();
+                $("#cm").prop("disabled", true);
+                $("#columns").prop("disabled", true);
+                $("#seconds").prop("disabled", false);
+                $("#category").prop("disabled", true);
+                $("#subject").prop("disabled", true);
+                $("#color").prop("disabled", true);
+                $("#insertions-label").html("<b>No of days</b>");
+            } else if (typeSelect.val() === "8") {
+                $("#printcalculation").hide();
+                $("#categoryContainer").hide();
+                $("#videoSecondsContainer").hide();
+                $("#subjectContainer").hide();
+                $("#colorContainer").hide();
+                $("#cm").prop("disabled", true);
+                $("#columns").prop("disabled", true);
+                $("#seconds").prop("disabled", true);
+                $("#category").prop("disabled", true);
+                $("#subject").prop("disabled", true);
+                $("#color").prop("disabled", true);
+                $("#insertions-label").html("<b>No of days</b>");
+                $("#pageInfoContainer").hide();
+                $("#page_info").prop("readOnly", true).prop("disabled", true);
+            } else {
+                $("#printcalculation").hide();
+                $("#categoryContainer").hide();
+                $("#videoSecondsContainer").hide();
+                $("#cm").prop("disabled", true);
+                $("#columns").prop("disabled", true);
+                $("#seconds").prop("disabled", true);
+                $("#category").prop("disabled", true);
+                $("#subject").prop("disabled", true);
+                $("#color").prop("disabled", true);
+                $("#insertions-label").html("<b>No of days</b>");
+            }
         });
-    });
+
+        categorySelect.on("change", function () {
+            if (categorySelect.val() === "1") {
+                $("#pageInfoContainer").show();
+                $("#page_info").prop("readOnly", false).prop("disabled", false);
+            } else {
+                $("#pageInfoContainer").hide();
+                $("#page_info").prop("readOnly", true).prop("disabled", true);
+            }
+        });
+
+        // Trigger the initial change events
+        typeSelect.trigger("change");
+        categorySelect.trigger("change");
+    }
+
+    // Call the function
+    initializeAdvertisementFormLogic();
 });
-
-function initializeAdvertisementFormLogic() {
-    // Get the required elements by their IDs
-    const typeSelect = document.getElementById("advertisementType");
-    const printCalculationDiv = document.getElementById("printcalculation");
-    const videoSecondsContainer = document.getElementById(
-        "videoSecondsContainer"
-    );
-    const subjectContainer = document.getElementById("subjectContainer");
-    const colorContainer = document.getElementById("colorContainer");
-    const pageInfoContainer = document.getElementById("pageInfoContainer");
-    const amountInput = document.getElementById("amount");
-    const cmInput = document.getElementById("cm");
-    const columnsInput = document.getElementById("columns");
-    const secondsInput = document.getElementById("seconds");
-    const categoryContainer = document.getElementById("categoryContainer");
-    const categorySelect = document.getElementById("category");
-    const subjectSelect = document.getElementById("subject");
-    const colorSelect = document.getElementById("color");
-    const pageInfoSelect = document.getElementById("page_info");
-    const insertionsLabel = document.getElementById("insertions-label");
-    const newsTypeSelect = document.getElementById("newspaper_type");
-
-    // Event listener for advertisement type changes
-    typeSelect.addEventListener("change", function () {
-        if (typeSelect.value === "7") {
-            printCalculationDiv.style.display = "block";
-            categoryContainer.style.display = "block";
-            videoSecondsContainer.style.display = "none";
-            subjectContainer.style.display = "block";
-            colorContainer.style.display = "block";
-            amountInput.readOnly = true;
-            cmInput.disabled = false;
-            columnsInput.disabled = false;
-            secondsInput.disabled = true;
-            categorySelect.disabled = false;
-            subjectSelect.disabled = false;
-            colorSelect.disabled = false;
-            insertionsLabel.innerHTML = "<b>No of issues</b>";
-        } else if (typeSelect.value === "6") {
-            printCalculationDiv.style.display = "none";
-            categoryContainer.style.display = "none";
-            videoSecondsContainer.style.display = "block";
-            subjectContainer.style.display = "none";
-            colorContainer.style.display = "none";
-            amountInput.readOnly = true;
-            cmInput.disabled = true;
-            columnsInput.disabled = true;
-            secondsInput.disabled = false;
-            categorySelect.disabled = true;
-            subjectSelect.disabled = true;
-            colorSelect.disabled = true;
-            insertionsLabel.innerHTML = "<b>No of days</b>";
-        } else if (typeSelect.value === "8") {
-            printCalculationDiv.style.display = "none";
-            categoryContainer.style.display = "none";
-            videoSecondsContainer.style.display = "none";
-            subjectContainer.style.display = "none";
-            colorContainer.style.display = "none";
-            amountInput.readOnly = true;
-            cmInput.disabled = true;
-            columnsInput.disabled = true;
-            secondsInput.disabled = true;
-            categorySelect.disabled = true;
-            subjectSelect.disabled = true;
-            colorSelect.disabled = true;
-            insertionsLabel.innerHTML = "<b>No of days</b>";
-        } else {
-            printCalculationDiv.style.display = "none";
-            categoryContainer.style.display = "none";
-            videoSecondsContainer.style.display = "none";
-            amountInput.readOnly = true;
-            cmInput.disabled = true;
-            columnsInput.disabled = true;
-            secondsInput.disabled = true;
-            categorySelect.disabled = true;
-            subjectSelect.disabled = true;
-            colorSelect.disabled = true;
-            insertionsLabel.innerHTML = "<b>No of days</b>";
-        }
-    });
-
-    // Event listener for category changes
-    categorySelect.addEventListener("change", function () {
-        if (categorySelect.value === "1") {
-            pageInfoContainer.style.display = "block";
-            pageInfoSelect.readOnly = false;
-            pageInfoSelect.disabled = false;
-        } else {
-            pageInfoContainer.style.display = "none";
-            pageInfoSelect.readOnly = true;
-            pageInfoSelect.disabled = true;
-        }
-    });
-
-    // Event listener for news type changes
-    newsTypeSelect.addEventListener("change", function () {
-        if (newsTypeSelect.value === "2") {
-            amountInput.readOnly = false;
-            amountInput.classList.remove("readonly-input");
-        } else {
-            amountInput.readOnly = true;
-            amountInput.classList.add("readonly-input");
-        }
-    });
-
-    // Trigger initial logic to set form elements based on default values
-    typeSelect.dispatchEvent(new Event("change"));
-    categorySelect.dispatchEvent(new Event("change"));
-    newsTypeSelect.dispatchEvent(new Event("change"));
-}
 
 document.addEventListener("DOMContentLoaded", function () {
     $(document).on("change", ".publish-switch", function () {
@@ -816,7 +578,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Function to fetch advertisement details
 function showAdvertisementDetails(advertisementId) {
     $.ajax({
         type: "GET",
@@ -836,9 +597,6 @@ function showAdvertisementDetails(advertisementId) {
                 response.assigned_news
                     .map((assignedNews) => assignedNews.empanelled.news_name)
                     .join(", ")
-            );
-            $("#detailsModalAmount").text(
-                response.amount !== null ? response.amount : "NA"
             );
             $("#detailsModalRefNo").text(response.ref_no);
             $("#detailsModalRefDate").text(response.ref_date);
@@ -878,19 +636,11 @@ function showAdvertisementDetails(advertisementId) {
             } else {
                 $("#cancellationReasonContainer").hide();
                 $(".progressbar").show();
-
-                // Reset all steps in the progress bar
                 $(".progressbar li").removeClass("active");
-
-                // Set the "Pending" step as active by default
                 $(".progressbar li").eq(0).addClass("active");
-
-                // Mark the "Published" step as active only if is_published is true
                 if (response.is_published) {
                     $(".progressbar li").eq(1).addClass("active");
                 }
-
-                // Mark the "Billed" step as active only if the status is "Billed"
                 if (response.status === "Billed") {
                     $(".progressbar li").eq(2).addClass("active");
                 }
@@ -903,6 +653,152 @@ function showAdvertisementDetails(advertisementId) {
         },
     });
 }
+
+let assignedNewsIndex = 1;
+const insertionCounts = {};
+const newspaperData = {};
+
+function updateInsertionTable() {
+    const tableBody = $("#insertionCountsTable tbody");
+    tableBody.empty();
+
+    Object.entries(insertionCounts).forEach(([newspaperId, count]) => {
+        if (count > 0) {
+            const newspaperName =
+                newspaperData[newspaperId] || `Unknown Newspaper`;
+            tableBody.append(`
+                <tr>
+                    <td>${newspaperName}</td> <!-- Use the newspaper name here -->
+                    <td>${count}</td>
+                </tr>
+            `);
+        }
+    });
+}
+
+function updateInsertions() {
+    // Reset the insertion counts
+    Object.keys(insertionCounts).forEach((key) => (insertionCounts[key] = 0));
+
+    $(".assigned-news-row").each(function () {
+        const positivelyInput = $(this).find(".positively-datepicker");
+        const newspaperSelect = $(this).find("select");
+
+        const selectedDate = positivelyInput.val();
+        const selectedNewspapers = newspaperSelect.val();
+
+        if (selectedDate && selectedNewspapers) {
+            selectedNewspapers.forEach((newspaperId) => {
+                if (!insertionCounts[newspaperId]) {
+                    insertionCounts[newspaperId] = 0;
+                }
+                insertionCounts[newspaperId] += 1;
+            });
+        }
+    });
+
+    updateInsertionTable();
+}
+
+function populateNewspaperDropdown(rowIndex) {
+    const newspaperSelect = $(
+        `select[name="assigned_news[${rowIndex}][newspaper][]"]`
+    );
+
+    $.ajax({
+        url: "/get-newspapers",
+        type: "POST",
+        data: { type_id: 1 },
+        success: function (data) {
+            newspaperSelect.empty();
+            newspaperSelect.append(
+                '<option value="select-all">- Select All -</option>'
+            );
+
+            // Store newspaper data (id -> name mapping)
+            data.forEach(function (newspaper) {
+                newspaperData[newspaper.id] = newspaper.name; // Store the name by ID
+                newspaperSelect.append(
+                    `<option value="${newspaper.id}">${newspaper.name} (${newspaper.advertisement_count})</option>`
+                );
+            });
+
+            newspaperSelect.on("change", function () {
+                if (newspaperSelect.val().includes("select-all")) {
+                    newspaperSelect.val(data.map((item) => item.id));
+                    newspaperSelect.trigger("change.select2");
+                }
+                updateInsertions(); // Update insertions when selection changes
+            });
+
+            newspaperSelect.trigger("change.select2");
+        },
+        error: function () {
+            alert("Error fetching newspaper data.");
+        },
+    });
+}
+
+function addAssignedNewsRow() {
+    const tableBody = document.querySelector("#assignedNewsTable tbody");
+
+    const newRow = document.createElement("tr");
+    newRow.classList.add("assigned-news-row", "align-middle");
+    const rowId =
+        assignedNewsIndex === 1 ? "first-row" : `row-${assignedNewsIndex}`;
+
+    newRow.innerHTML = `
+        <td>
+            <input type="text" id="positively-${assignedNewsIndex}" name="assigned_news[${assignedNewsIndex}][positively]" class="form-control positively-datepicker" required>
+         </td>
+        <td>
+            <select name="assigned_news[${assignedNewsIndex}][newspaper][]" class="form-control select2" multiple required>
+                <option value="select-all">- Select All -</option>
+            </select>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeAssignedNewsRow(this)" title="Remove this row" ${
+                assignedNewsIndex === 1 ? "disabled" : ""
+            }>
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    `;
+
+    newRow.id = rowId;
+
+    tableBody.appendChild(newRow);
+
+    $(`#positively-${assignedNewsIndex}`).datepicker({
+        dateFormat: "dd-mm-yy",
+        onSelect: updateInsertions,
+        onClose: updateInsertions,
+    });
+
+    $(
+        `select[name="assigned_news[${assignedNewsIndex}][newspaper][]"]`
+    ).select2();
+
+    populateNewspaperDropdown(assignedNewsIndex);
+
+    assignedNewsIndex++;
+}
+
+function removeAssignedNewsRow(button) {
+    const row = button.closest("tr");
+
+    if (row.id === "first-row") {
+        alert("The first row cannot be deleted.");
+        return;
+    }
+
+    row.remove();
+    updateInsertions();
+}
+
+$(document).ready(function () {
+    addAssignedNewsRow();
+});
 
 function formatDate(dateString) {
     var date = new Date(dateString);

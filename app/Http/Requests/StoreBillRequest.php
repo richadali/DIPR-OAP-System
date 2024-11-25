@@ -11,9 +11,9 @@ class StoreBillRequest extends FormRequest
         return [
             'bill_no' => 'required',
             'bill_date' => 'required',
-            'ad_id' => 'required'
+            'ad_id' => 'required',
+            'total_amount' => 'required|numeric|min:0',
         ];
-
     }
 
     public function messages()
@@ -21,7 +21,8 @@ class StoreBillRequest extends FormRequest
         return [
             'bill_no.required' => 'The Bill No is required.',
             'bill_date.required' => 'The Bill Date is required.',
-            'ad_id.required' => 'The Advertisement No is required.'
+            'ad_id.required' => 'The Advertisement No is required.',
+            'total_amount.required' => 'The Bill Amount is required.',
         ];
     }
 }
