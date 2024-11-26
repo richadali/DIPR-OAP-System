@@ -111,12 +111,8 @@ class AdvertisementController extends Controller
                             Advertisement::whereId($request->id)->update([
                                 'issue_date' => $request->issue_date,
                                 'department_id' => $request->department,
-                                'cm' => $request->cm,
-                                'columns' => $request->columns,
-                                'seconds' => $request->seconds,
                                 'ref_no' => $request->ref_no,
                                 'ref_date' => $request->ref_date,
-                                'positively_on' => $request->positively,  // Store as single date
                                 'remarks' => $request->remarks,
                                 'advertisement_type_id' => $request->advertisementType,
                                 'subject_id' => $request->subject,
@@ -132,14 +128,18 @@ class AdvertisementController extends Controller
                             $advertisement = Advertisement::findOrFail($request->id);
                             $advertisement->assigned_news()->delete();
 
-                            // Assign new newspapers along with the 'positively_on' date
+                            // Assign new newspapers along with the 'positively_on' date, cm, columns, and seconds
                             foreach ($newspaperData as $assignedNews) {
                                 $assignedNewsRecord = new AssignedNews();
                                 $assignedNewsRecord->advertisement_id = $advertisement->id;
                                 $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
                                 $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
+                                $assignedNewsRecord->cm = $assignedNews['cm'] ?? null; // Retrieve 'cm' from newspaperData
+                                $assignedNewsRecord->columns = $assignedNews['columns'] ?? null; // Retrieve 'columns' from newspaperData
+                                $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null; // Retrieve 'seconds' from newspaperData
                                 $assignedNewsRecord->save();
                             }
+
 
                             DB::commit();
                             return response()->json(["flag" => "YY"]);
@@ -153,9 +153,6 @@ class AdvertisementController extends Controller
                         $advertisement->user_id = auth()->user()->id;
                         $advertisement->department_id = $request->department;
                         $advertisement->issue_date = $request->issue_date;
-                        $advertisement->cm = $request->cm;
-                        $advertisement->columns = $request->columns;
-                        $advertisement->seconds = $request->seconds;
                         $advertisement->ref_no = $request->ref_no;
                         $advertisement->ref_date = $request->ref_date;
                         $advertisement->remarks = $request->remarks;
@@ -174,8 +171,12 @@ class AdvertisementController extends Controller
                             $assignedNewsRecord->advertisement_id = $advertisement->id;
                             $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
                             $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
+                            $assignedNewsRecord->cm = $assignedNews['cm'] ?? null; // Retrieve 'cm' from newspaperData
+                            $assignedNewsRecord->columns = $assignedNews['columns'] ?? null; // Retrieve 'columns' from newspaperData
+                            $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null; // Retrieve 'seconds' from newspaperData
                             $assignedNewsRecord->save();
                         }
+
 
                         // Increment the MIPR number after saving the advertisement
                         $finYear = $this->getCurrentFinancialYear();
@@ -205,6 +206,7 @@ class AdvertisementController extends Controller
             return response()->json(['error' => 'No newspaper data found'], 422);
         }
     }
+
 
 
 

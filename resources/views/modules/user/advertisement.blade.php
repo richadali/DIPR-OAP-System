@@ -402,30 +402,6 @@
                         </select>
                       </div>
                     </div>
-
-                    <div class="col-md-6">
-                      <div id="printcalculation" style="display: none;">
-                        <div class="col-md-12">
-                          <div class="row">
-                            <div class="col-md-6">
-                              <label for="cm" class="form-label"><b>
-                                  cm </b></label>
-                              <br>
-                              <input id="cm" type="text" class="form-control" name="cm" required autocomplete="off">
-                            </div>
-                            <div class="col-md-6">
-                              <label for="columns" class="form-label"><b>col</b></label>
-                              <input id="columns" type="text" class="form-control" name="columns" required
-                                autocomplete="off">
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-12" id="videoSecondsContainer" style="display: none;">
-                        <label for="seconds" class="form-label"><b>Number of Seconds:</b></label>
-                        <input id="seconds" type="text" class="form-control" name="seconds" required autocomplete="off">
-                      </div>
-                    </div>
                   </div>
 
 
@@ -467,8 +443,8 @@
                         <table class="table table-striped table-bordered" id="assignedNewsTable">
                           <thead class="thead-light">
                             <tr>
-                              <th width="30%">Positively On</th>
-                              <th width="60%">Organization(s)</th>
+                              <th width="15%">Positively On</th>
+                              <th width="75%">Organization(s)</th>
                               <th width="10%">Action</th>
                             </tr>
                           </thead>

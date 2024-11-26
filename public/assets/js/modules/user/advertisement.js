@@ -154,12 +154,18 @@ $(document).ready(function () {
             var selectedNewspapers = $(this)
                 .find("select[name$='[newspaper][]']")
                 .val();
+            var cm = $(this).find(".cm-input").val(); // Get 'cm' input
+            var columns = $(this).find(".columns-input").val(); // Get 'columns' input
+            var seconds = $(this).find(".seconds-input").val(); // Get 'seconds' input
 
             if (selectedNewspapers && positively) {
                 selectedNewspapers.forEach(function (newspaperId) {
                     newspaperData.push({
                         newspaper_id: newspaperId,
                         positively: positively,
+                        cm: cm || null, // Add 'cm' with fallback to null
+                        columns: columns || null, // Add 'columns' with fallback to null
+                        seconds: seconds || null, // Add 'seconds' with fallback to null
                     });
                 });
             }
@@ -172,6 +178,7 @@ $(document).ready(function () {
         for (const [key, value] of formData.entries()) {
             console.log(key + " : " + value); // Log the data to confirm structure
         }
+
         $.ajax({
             type: "POST",
             url: "/advertisement-store-data",
@@ -479,57 +486,33 @@ $(document).ready(function () {
 
         typeSelect.on("change", function () {
             if (typeSelect.val() === "7") {
-                $("#printcalculation").show();
                 $("#categoryContainer").show();
-                $("#videoSecondsContainer").hide();
                 $("#subjectContainer").show();
                 $("#colorContainer").show();
-                $("#cm").prop("disabled", false);
-                $("#columns").prop("disabled", false);
-                $("#seconds").prop("disabled", true);
                 $("#category").prop("disabled", false);
                 $("#subject").prop("disabled", false);
                 $("#color").prop("disabled", false);
-                $("#insertions-label").html("<b>No of issues</b>");
             } else if (typeSelect.val() === "6") {
-                $("#printcalculation").hide();
                 $("#categoryContainer").hide();
-                $("#videoSecondsContainer").show();
                 $("#subjectContainer").hide();
                 $("#colorContainer").hide();
-                $("#cm").prop("disabled", true);
-                $("#columns").prop("disabled", true);
-                $("#seconds").prop("disabled", false);
                 $("#category").prop("disabled", true);
                 $("#subject").prop("disabled", true);
                 $("#color").prop("disabled", true);
-                $("#insertions-label").html("<b>No of days</b>");
             } else if (typeSelect.val() === "8") {
-                $("#printcalculation").hide();
                 $("#categoryContainer").hide();
-                $("#videoSecondsContainer").hide();
                 $("#subjectContainer").hide();
                 $("#colorContainer").hide();
-                $("#cm").prop("disabled", true);
-                $("#columns").prop("disabled", true);
-                $("#seconds").prop("disabled", true);
                 $("#category").prop("disabled", true);
                 $("#subject").prop("disabled", true);
                 $("#color").prop("disabled", true);
-                $("#insertions-label").html("<b>No of days</b>");
                 $("#pageInfoContainer").hide();
                 $("#page_info").prop("readOnly", true).prop("disabled", true);
             } else {
-                $("#printcalculation").hide();
                 $("#categoryContainer").hide();
-                $("#videoSecondsContainer").hide();
-                $("#cm").prop("disabled", true);
-                $("#columns").prop("disabled", true);
-                $("#seconds").prop("disabled", true);
                 $("#category").prop("disabled", true);
                 $("#subject").prop("disabled", true);
                 $("#color").prop("disabled", true);
-                $("#insertions-label").html("<b>No of days</b>");
             }
         });
 
@@ -654,9 +637,10 @@ function showAdvertisementDetails(advertisementId) {
     });
 }
 
-let assignedNewsIndex = 1;
+let assignedNewsIndex = 1; // Keeps track of the row number.
 const insertionCounts = {};
 const newspaperData = {};
+let advertisementType = $("#advertisementType").val(); // Assume this dropdown exists on the page.
 
 function updateInsertionTable() {
     const tableBody = $("#insertionCountsTable tbody");
@@ -668,7 +652,7 @@ function updateInsertionTable() {
                 newspaperData[newspaperId] || `Unknown Newspaper`;
             tableBody.append(`
                 <tr>
-                    <td>${newspaperName}</td> <!-- Use the newspaper name here -->
+                    <td>${newspaperName}</td>
                     <td>${count}</td>
                 </tr>
             `);
@@ -677,7 +661,6 @@ function updateInsertionTable() {
 }
 
 function updateInsertions() {
-    // Reset the insertion counts
     Object.keys(insertionCounts).forEach((key) => (insertionCounts[key] = 0));
 
     $(".assigned-news-row").each(function () {
@@ -708,16 +691,15 @@ function populateNewspaperDropdown(rowIndex) {
     $.ajax({
         url: "/get-newspapers",
         type: "POST",
-        data: { type_id: 1 },
+        data: { type_id: advertisementType },
         success: function (data) {
             newspaperSelect.empty();
             newspaperSelect.append(
                 '<option value="select-all">- Select All -</option>'
             );
 
-            // Store newspaper data (id -> name mapping)
             data.forEach(function (newspaper) {
-                newspaperData[newspaper.id] = newspaper.name; // Store the name by ID
+                newspaperData[newspaper.id] = newspaper.name;
                 newspaperSelect.append(
                     `<option value="${newspaper.id}">${newspaper.name} (${newspaper.advertisement_count})</option>`
                 );
@@ -728,7 +710,7 @@ function populateNewspaperDropdown(rowIndex) {
                     newspaperSelect.val(data.map((item) => item.id));
                     newspaperSelect.trigger("change.select2");
                 }
-                updateInsertions(); // Update insertions when selection changes
+                updateInsertions();
             });
 
             newspaperSelect.trigger("change.select2");
@@ -740,21 +722,62 @@ function populateNewspaperDropdown(rowIndex) {
 }
 
 function addAssignedNewsRow() {
-    const tableBody = document.querySelector("#assignedNewsTable tbody");
+    const tableBody = document.querySelector("#assignedNewsTableBody");
 
     const newRow = document.createElement("tr");
     newRow.classList.add("assigned-news-row", "align-middle");
     const rowId =
         assignedNewsIndex === 1 ? "first-row" : `row-${assignedNewsIndex}`;
 
+    // Determine the advertisement type dynamically
+    const advertisementType = $("#advertisementType").val();
+
+    let dynamicFields = "";
+
+    if (advertisementType === "7") {
+        dynamicFields = `
+            <div class="col-2">
+                <input type="text" id="cm-${assignedNewsIndex}" name="assigned_news[${assignedNewsIndex}][cm]" class="form-control cm-input" placeholder="CM" required>
+            </div>
+            <div class="col-2">
+                <input type="text" id="columns-${assignedNewsIndex}" name="assigned_news[${assignedNewsIndex}][columns]" class="form-control columns-input" placeholder="Columns" required>
+            </div>
+        `;
+    } else if (advertisementType === "6") {
+        dynamicFields = `
+            <div class="col-4">
+                <input type="text" id="seconds-${assignedNewsIndex}" name="assigned_news[${assignedNewsIndex}][seconds]" class="form-control seconds-input" placeholder="Seconds" required>
+            </div>
+        `;
+    } else {
+        dynamicFields = `
+            <div class="col-12">
+                <select name="assigned_news[${assignedNewsIndex}][newspaper][]" class="form-control select2" multiple required>
+                    <option value="select-all">- Select All -</option>
+                </select>
+            </div>
+        `;
+    }
+
     newRow.innerHTML = `
         <td>
             <input type="text" id="positively-${assignedNewsIndex}" name="assigned_news[${assignedNewsIndex}][positively]" class="form-control positively-datepicker" required>
-         </td>
+        </td>
         <td>
-            <select name="assigned_news[${assignedNewsIndex}][newspaper][]" class="form-control select2" multiple required>
-                <option value="select-all">- Select All -</option>
-            </select>
+            <div class="row">
+                ${
+                    advertisementType === "7" || advertisementType === "6"
+                        ? `
+                    <div class="col-8">
+                        <select name="assigned_news[${assignedNewsIndex}][newspaper][]" class="form-control select2" multiple required>
+                            <option value="select-all">- Select All -</option>
+                        </select>
+                    </div>
+                    ${dynamicFields}
+                `
+                        : dynamicFields
+                }
+            </div>
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-danger btn-sm" onclick="removeAssignedNewsRow(this)" title="Remove this row" ${
@@ -766,22 +789,56 @@ function addAssignedNewsRow() {
     `;
 
     newRow.id = rowId;
-
     tableBody.appendChild(newRow);
 
+    // Initialize datepicker for the new row
     $(`#positively-${assignedNewsIndex}`).datepicker({
         dateFormat: "dd-mm-yy",
         onSelect: updateInsertions,
         onClose: updateInsertions,
     });
 
+    // Initialize Select2 for the newspaper dropdown
     $(
         `select[name="assigned_news[${assignedNewsIndex}][newspaper][]"]`
     ).select2();
 
+    // Populate the newspaper dropdown with data from the server
     populateNewspaperDropdown(assignedNewsIndex);
 
+    // Add input validation for CM, Columns, and Seconds
+    if (advertisementType === "7") {
+        document
+            .getElementById(`cm-${assignedNewsIndex}`)
+            .addEventListener("input", function (e) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+            });
+
+        document
+            .getElementById(`columns-${assignedNewsIndex}`)
+            .addEventListener("input", function (e) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+            });
+    }
+
+    if (advertisementType === "6") {
+        document
+            .getElementById(`seconds-${assignedNewsIndex}`)
+            .addEventListener("input", function (e) {
+                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+            });
+    }
+
     assignedNewsIndex++;
+    updateRemoveButtonState(); // Check if the first row needs to be disabled
+}
+
+// Update the remove button state for the first row
+function updateRemoveButtonState() {
+    const firstRowButton = $("#assignedNewsTableBody tr:first-child button");
+    if (firstRowButton.length > 0) {
+        firstRowButton.prop("disabled", true);
+    }
 }
 
 function removeAssignedNewsRow(button) {
@@ -794,9 +851,17 @@ function removeAssignedNewsRow(button) {
 
     row.remove();
     updateInsertions();
+    updateRemoveButtonState(); // Recheck the first row button state
 }
 
 $(document).ready(function () {
+    advertisementType = $("#advertisementType").val();
+    $("#advertisementType").on("change", function () {
+        advertisementType = $(this).val();
+        $("#assignedNewsTable tbody").empty();
+        addAssignedNewsRow();
+    });
+
     addAssignedNewsRow();
 });
 
@@ -807,19 +872,3 @@ function formatDate(dateString) {
     var year = date.getFullYear();
     return day + "-" + month + "-" + year;
 }
-
-//---------------- VALIDATING FIELDS
-
-document.getElementById("seconds").addEventListener("input", function (e) {
-    let value = e.target.value;
-    e.target.value = value.replace(/[^0-9]/g, "");
-});
-document.getElementById("cm").addEventListener("input", function (e) {
-    let value = e.target.value;
-    e.target.value = value.replace(/[^0-9]/g, "");
-});
-
-document.getElementById("columns").addEventListener("input", function (e) {
-    let value = e.target.value;
-    e.target.value = value.replace(/[^0-9]/g, "");
-});

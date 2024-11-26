@@ -47,10 +47,22 @@ class ReportsController extends Controller
             $advertisement->grouped_rows = $advertisement->assigned_news->groupBy(function ($news) {
                 return $news->empanelled->news_name;
             })->map(function ($group, $newspaper) {
+                $positivelyOnDates = $group->pluck('positively_on')->map(fn($date) => \Carbon\Carbon::parse($date)->format('d-m-Y'))->implode(', ');
+
+                $sizes = $group->map(function ($news) {
+                    if (!empty($news->cm) && !empty($news->columns)) {
+                        return "{$news->cm}x{$news->columns}";
+                    } elseif (!empty($news->seconds)) {
+                        return "{$news->seconds}s";
+                    }
+                    return '';
+                })->unique()->implode(', ');
+
                 return [
                     'newspaper' => $newspaper,
-                    'positively_on' => $group->pluck('positively_on')->map(fn($date) => \Carbon\Carbon::parse($date)->format('d-m-Y'))->implode(', '),
+                    'positively_on' => $positivelyOnDates,
                     'no_of_insertions' => $group->count(),
+                    'sizes' => $sizes,
                 ];
             });
         }
@@ -61,51 +73,73 @@ class ReportsController extends Controller
     }
 
 
-
-
-
     public function exportIssueRegisterToExcel(Request $request, $from, $to)
     {
         $fromDate = \Carbon\Carbon::createFromFormat('d-m-Y', $from)->format('Y-m-d');
         $toDate = \Carbon\Carbon::createFromFormat('d-m-Y', $to)->format('Y-m-d');
 
+        // Fetch advertisements with relationships
         $advertisements = Advertisement::with(['assigned_news.empanelled.news_type', 'department', 'subject'])
             ->whereBetween('advertisement.issue_date', [$fromDate, $toDate])
             ->orderBy('advertisement.id')
             ->get();
 
+        // Debug: Log advertisements data
+        \Log::info('Advertisements Data:', $advertisements->toArray());
+
         // Flatten advertisement data for Excel
-        $flattenedData = []; // Array for flattened data
+        $flattenedData = [];
 
         foreach ($advertisements as $advertisement) {
             // Group assigned news by newspaper
             $groupedNews = $advertisement->assigned_news->groupBy(function ($news) {
-                return $news->empanelled->news_name;
+                return $news->empanelled->news_name ?? 'Unknown Newspaper';
             });
 
             foreach ($groupedNews as $newspaper => $group) {
+                // Initialize size_seconds
+                $size_seconds = '';
+
+                foreach ($group as $assignedNews) {
+                    // Debug: Log assigned news data
+                    \Log::info('Assigned News Data:', $assignedNews->toArray());
+
+                    // Calculate size_seconds based on available data
+                    if (!empty($assignedNews->cm) && !empty($assignedNews->columns)) {
+                        $size_seconds = $assignedNews->cm . ' x ' . $assignedNews->columns;
+                    } elseif (!empty($assignedNews->seconds)) {
+                        $size_seconds = $assignedNews->seconds . ' s';
+                    } else {
+                        $size_seconds = ''; // Fallback value
+                    }
+                }
+
+                // Add flattened data for Excel
                 $flattenedData[] = [
                     'mipr_no' => $advertisement->mipr_no,
-                    'issue_date' => Carbon::parse($advertisement->issue_date)->format('d-m-Y'),
-                    'dept_name' => $advertisement->department->dept_name,
-                    'size_seconds' => !empty($advertisement->cm) && !empty($advertisement->columns)
-                        ? $advertisement->cm . ' x ' . $advertisement->columns
-                        : (!empty($advertisement->seconds) ? $advertisement->seconds . ' s' : ''),
+                    'issue_date' => \Carbon\Carbon::parse($advertisement->issue_date)->format('d-m-Y'),
+                    'dept_name' => $advertisement->department->dept_name ?? 'Unknown Department',
+                    'size_seconds' => $size_seconds,
                     'subject' => $advertisement->subject->subject_name ?? '',
-                    'ref_no_date' => $advertisement->ref_no . ' Dt. ' . Carbon::parse($advertisement->ref_date)->format('d-m-Y'),
+                    'ref_no_date' => $advertisement->ref_no . ' Dt. ' . \Carbon\Carbon::parse($advertisement->ref_date)->format('d-m-Y'),
                     'newspaper' => $newspaper,
-                    'positively_on' => $group->pluck('positively_on')->map(fn($date) => Carbon::parse($date)->format('d-m-Y'))->implode(', '),
+                    'positively_on' => $group->pluck('positively_on')->map(fn($date) => \Carbon\Carbon::parse($date)->format('d-m-Y'))->implode(', '),
                     'no_of_insertions' => $group->count(),
                     'remarks' => $advertisement->remarks ?? '',
                 ];
             }
         }
 
-        // Convert flattened data to a collection and pass to the export class
+        // Debug: Log the flattened data
+        \Log::info('Flattened Data:', $flattenedData);
+
+        // Convert flattened data to a collection and pass it to the export class
         $flattenedData = collect($flattenedData);
 
+        // Return Excel download response
         return Excel::download(new IssueRegisterExport($flattenedData), 'issue_register.xlsx');
     }
+
 
 
 

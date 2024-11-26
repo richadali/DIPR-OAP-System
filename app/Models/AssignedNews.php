@@ -17,7 +17,6 @@ class AssignedNews extends Model
 
     public function empanelled()
     {
-        return $this->belongsTo(Empanelled::class,'empanelled_id', 'id');
+        return $this->belongsTo(Empanelled::class, 'empanelled_id', 'id');
     }
-
 }

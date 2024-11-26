@@ -64,17 +64,30 @@ class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, Wi
         $lastMiprNo = null;
 
         foreach ($this->data as $row) {
+            // Log the row data as an array
+            \Log::info('Row data:', ['data' => $row]);
+
+            // Group by MIPR No to prevent merging rows
             if ($lastMiprNo !== $row['mipr_no']) {
-                // Add the full details for the first occurrence of MIPR No
-                $groupedData[] = $row;
+                $groupedData[] = [
+                    'mipr_no' => $row['mipr_no'],
+                    'issue_date' => $row['issue_date'],
+                    'dept_name' => $row['dept_name'],
+                    'size_seconds' => $row['size_seconds'],
+                    'subject' => $row['subject'],
+                    'ref_no_date' => $row['ref_no_date'],
+                    'newspaper' => $row['newspaper'],
+                    'positively_on' => $row['positively_on'],
+                    'no_of_insertions' => $row['no_of_insertions'],
+                    'remarks' => $row['remarks'],
+                ];
                 $lastMiprNo = $row['mipr_no'];
             } else {
-                // Add only the split columns for subsequent occurrences of MIPR No
                 $groupedData[] = [
                     'mipr_no' => '',
                     'issue_date' => '',
                     'dept_name' => '',
-                    'size_seconds' => '',
+                    'size_seconds' => $row['size_seconds'],
                     'subject' => '',
                     'ref_no_date' => '',
                     'newspaper' => $row['newspaper'],
@@ -87,6 +100,9 @@ class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, Wi
 
         return collect($groupedData);
     }
+
+
+
 
     public function headings(): array
     {
@@ -145,7 +161,7 @@ class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, Wi
                             $sheet->mergeCells("A{$mergeStartRow}:A" . ($rowIndex - 1));
                             $sheet->mergeCells("B{$mergeStartRow}:B" . ($rowIndex - 1));
                             $sheet->mergeCells("C{$mergeStartRow}:C" . ($rowIndex - 1));
-                            $sheet->mergeCells("D{$mergeStartRow}:D" . ($rowIndex - 1));
+                            // Do not merge 'Size/Seconds' column (D column) here
                             $sheet->mergeCells("E{$mergeStartRow}:E" . ($rowIndex - 1));
                             $sheet->mergeCells("F{$mergeStartRow}:F" . ($rowIndex - 1));
                             $sheet->mergeCells("J{$mergeStartRow}:J" . ($rowIndex - 1));
@@ -159,11 +175,11 @@ class IssueRegisterSheet implements FromCollection, WithHeadings, WithStyles, Wi
                     $rowIndex++;
                 }
 
-                // Final merge for the last MIPR No
+                // Final merge for the last MIPR No (exclude 'Size/Seconds')
                 $sheet->mergeCells("A{$mergeStartRow}:A" . ($rowIndex - 1));
                 $sheet->mergeCells("B{$mergeStartRow}:B" . ($rowIndex - 1));
                 $sheet->mergeCells("C{$mergeStartRow}:C" . ($rowIndex - 1));
-                $sheet->mergeCells("D{$mergeStartRow}:D" . ($rowIndex - 1));
+                // Do not merge 'Size/Seconds' column (D column)
                 $sheet->mergeCells("E{$mergeStartRow}:E" . ($rowIndex - 1));
                 $sheet->mergeCells("F{$mergeStartRow}:F" . ($rowIndex - 1));
                 $sheet->mergeCells("J{$mergeStartRow}:J" . ($rowIndex - 1));

@@ -49,11 +49,11 @@
                 <th width="10%">Mipr No</th>
                 <th width="8%">Date of Issue</th>
                 <th width="22%">Name of Department Concerned</th>
-                <th width="6%">Size/Secs</th>
                 <th width="10%">Subject</th>
                 <th width="10%">Ref. No & Date</th>
                 <th width="10%">Newspaper</th>
                 <th width="8%">Positively On</th>
+                <th width="6%">Size/Secs</th>
                 <th width="5%">No of Insertion</th>
                 <th width="10%">Remarks</th>
             </tr>
@@ -74,15 +74,6 @@
                     {{ $advertisement->department->dept_name }}
                 </td>
                 <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
-                    @if(!empty($advertisement->cm) && !empty($advertisement->columns))
-                    {{ $advertisement->cm }}x{{ $advertisement->columns }}
-                    @elseif(!empty($advertisement->seconds))
-                    {{ $advertisement->seconds }}s
-                    @else
-                    &nbsp;
-                    @endif
-                </td>
-                <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
                     {{ $advertisement->subject->subject_name ?? ' ' }}
                 </td>
                 <td align="center" rowspan="{{ $advertisement->grouped_rows->count() }}">
@@ -92,6 +83,7 @@
 
                 <td>{{ $row['newspaper'] }}</td>
                 <td align="center">{{ $row['positively_on'] }}</td>
+                <td align="center">{{ $row['sizes'] }}</td>
                 <td align="center">{{ $row['no_of_insertions'] }}</td>
 
                 @if($firstRow)
