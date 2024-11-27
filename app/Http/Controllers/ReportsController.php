@@ -498,12 +498,10 @@ class ReportsController extends Controller
         DB::beginTransaction();
 
         try {
-            // Check if a row exists for the current financial year
             $releaseOrderRow = ReleaseOrderNo::where('fin_year', $fin_year)->first();
             $date = Carbon::now()->format('Y-m-d');
 
             if (is_null($releaseOrderRow)) {
-                // If no row exists, insert a new row with release order number set to 1
                 $RONo = 1;
                 DB::table('release_order_no')->insert([
                     'release_order_no' => $RONo,
@@ -516,7 +514,6 @@ class ReportsController extends Controller
                     ]);
                 }
             } else {
-                // If a row exists, update the release order number for the advertisement
                 $releaseOrderNo = $advertisement->release_order_no;
                 if (is_null($releaseOrderNo)) {
                     $MaxRONo = ReleaseOrderNo::where('fin_year', $fin_year)->max('release_order_no');
@@ -530,18 +527,21 @@ class ReportsController extends Controller
                 }
             }
 
-            $advertisement = Advertisement::with(['subject', 'assigned_news.empanelled', 'ad_category'])->find($id);
+            $advertisement = Advertisement::with([
+                'subject',
+                'assigned_news.empanelled',
+                'ad_category'
+            ])->find($id);
 
-            // Fetch the latest MIPR file number
+            // Group assigned_news by empanelled_id
+            $groupedAssignedNews = $advertisement->assigned_news->groupBy('empanelled_id');
+
             $miprFileNo = MiprFileNo::latest()->first();
-
-            // Fetch the amount from the `amount` table based on the advertisement type
             $amount = Amount::where('advertisement_type_id', $advertisement->advertisement_type_id)->value('amount');
 
             DB::commit();
 
-            // Generate PDF and pass amount to view
-            $pdf = PDF::loadView('reports.release_order', compact('advertisement', 'miprFileNo', 'amount'));
+            $pdf = PDF::loadView('reports.release_order', compact('advertisement', 'miprFileNo', 'amount', 'groupedAssignedNews'));
             $pdfFileName = 'Release_Order_MIPR_' . $advertisement->mipr_no . '.pdf';
             return $pdf->stream($pdfFileName, ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"']);
         } catch (\Throwable $th) {
@@ -550,6 +550,7 @@ class ReportsController extends Controller
             return response()->json(['error' => 'Failed to release order.'], 500);
         }
     }
+
 
 
 

@@ -505,16 +505,9 @@
               <p><b>Type:</b> <span id="modalAdvertisementType"></span></p>
               <p id="modalCategoryContainer" style="display: none;"><b>Category:</b> <span id="modalCategory"></span>
               </p>
-              <p id="modalCmContainer" style="display: none;"><b>Cms:</b> <span id="modalCm"></span></p>
-              <p id="modalColumnsContainer" style="display: none;"><b>Columns:</b> <span id="modalColumns"></span></p>
-              <p id="modalSecondsContainer" style="display: none;"><b>Seconds:</b> <span id="modalSeconds"></span></p>
-              <p><b>Total Amount:</b> <span id="modalAmount"></span></p>
               <p><b>Reference No.:</b> <span id="modalRefNo"></span></p>
               <p><b>Reference Date:</b> <span id="modalRefDate"></span></p>
               <p><b>Positively On:</b> <span id="modalPositively"></span></p>
-              <p><b>No of Insertions:</b> <span id="modalInsertions"></span></p>
-              <p><b>Newspaper(s):</b> <span id="modalNewspaper"></span></p>
-              <p><b>Dept. Letter No:</b> <span id="modalLetterNo"></span></p>
               <p><b>Remarks:</b> <span id="modalRemarks"></span></p>
             </div>
             <div class="modal-footer">

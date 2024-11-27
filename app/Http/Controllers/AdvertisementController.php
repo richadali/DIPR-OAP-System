@@ -84,21 +84,11 @@ class AdvertisementController extends Controller
 
     public function StoreData(StoreAdRequest $request)
     {
-        // Log the entire request data to check the incoming payload
-        \Log::debug($request->all());
-
-        // Validate the request data
         $validatedData = $request->validated();
-
-        // Retrieve the newspaper data from the request
         $newspaperData = $validatedData['newspaper'] ?? null;
-
-        // Check if the newspaper data is provided and is in the correct format
         if ($newspaperData) {
-            // Decode the JSON string into an array
             $newspaperData = json_decode($newspaperData, true);
 
-            // Check if the decoded data is an array
             if (is_array($newspaperData)) {
                 DB::beginTransaction();
 
@@ -124,19 +114,17 @@ class AdvertisementController extends Controller
                                 'updated_at' => now(),
                             ]);
 
-                            // Clear previous newspaper assignments
                             $advertisement = Advertisement::findOrFail($request->id);
                             $advertisement->assigned_news()->delete();
 
-                            // Assign new newspapers along with the 'positively_on' date, cm, columns, and seconds
                             foreach ($newspaperData as $assignedNews) {
                                 $assignedNewsRecord = new AssignedNews();
                                 $assignedNewsRecord->advertisement_id = $advertisement->id;
-                                $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
-                                $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
-                                $assignedNewsRecord->cm = $assignedNews['cm'] ?? null; // Retrieve 'cm' from newspaperData
-                                $assignedNewsRecord->columns = $assignedNews['columns'] ?? null; // Retrieve 'columns' from newspaperData
-                                $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null; // Retrieve 'seconds' from newspaperData
+                                $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id'];
+                                $assignedNewsRecord->positively_on = $assignedNews['positively'];
+                                $assignedNewsRecord->cm = $assignedNews['cm'] ?? null;
+                                $assignedNewsRecord->columns = $assignedNews['columns'] ?? null;
+                                $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null;
                                 $assignedNewsRecord->save();
                             }
 
@@ -148,7 +136,6 @@ class AdvertisementController extends Controller
                             return response()->json(["flag" => "NN"]);
                         }
                     } else { // Create new advertisement
-                        // Create a new advertisement record
                         $advertisement = new Advertisement();
                         $advertisement->user_id = auth()->user()->id;
                         $advertisement->department_id = $request->department;
@@ -165,20 +152,17 @@ class AdvertisementController extends Controller
                         $advertisement->mipr_no = $request->mipr_no;
                         $advertisement->save();
 
-                        // Assign newspapers if provided
                         foreach ($newspaperData as $assignedNews) {
                             $assignedNewsRecord = new AssignedNews();
                             $assignedNewsRecord->advertisement_id = $advertisement->id;
-                            $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id']; // Assuming 'newspaper_id' exists
-                            $assignedNewsRecord->positively_on = $assignedNews['positively']; // Save the 'positively_on' date
-                            $assignedNewsRecord->cm = $assignedNews['cm'] ?? null; // Retrieve 'cm' from newspaperData
-                            $assignedNewsRecord->columns = $assignedNews['columns'] ?? null; // Retrieve 'columns' from newspaperData
-                            $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null; // Retrieve 'seconds' from newspaperData
+                            $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id'];
+                            $assignedNewsRecord->positively_on = $assignedNews['positively'];
+                            $assignedNewsRecord->cm = $assignedNews['cm'] ?? null;
+                            $assignedNewsRecord->columns = $assignedNews['columns'] ?? null;
+                            $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null;
                             $assignedNewsRecord->save();
                         }
 
-
-                        // Increment the MIPR number after saving the advertisement
                         $finYear = $this->getCurrentFinancialYear();
                         $miprRow = DB::table('mipr_no')->where('fin_year', $finYear)->first();
                         if (!is_null($miprRow)) {
@@ -196,12 +180,11 @@ class AdvertisementController extends Controller
                     return response()->json(["error" => $e->getMessage()], 500);
                 }
             } else {
-                // If the newspaper data is not in a valid format
+
                 \Log::error("Invalid newspaper data: " . $validatedData['newspaper']);
                 return response()->json(['error' => 'Invalid newspaper data'], 422);
             }
         } else {
-            // If the newspaper data is missing
             \Log::error("No newspaper data found in the request.");
             return response()->json(['error' => 'No newspaper data found'], 422);
         }

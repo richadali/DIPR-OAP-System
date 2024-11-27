@@ -139,44 +139,37 @@ $(document).ready(function () {
     $("#advertisement-form").on("submit", function (e) {
         e.preventDefault();
         var formData = new FormData(this);
-
-        // Explicitly remove any existing 'assigned_news' fields from the formData
         formData.forEach(function (value, key) {
             if (key.startsWith("assigned_news")) {
-                formData.delete(key); // Remove any assigned_news fields
+                formData.delete(key);
             }
         });
-
-        // Collect the 'newspaper' data from the rows
         var newspaperData = [];
         $(".assigned-news-row").each(function () {
             var positively = $(this).find(".positively-datepicker").val();
             var selectedNewspapers = $(this)
                 .find("select[name$='[newspaper][]']")
                 .val();
-            var cm = $(this).find(".cm-input").val(); // Get 'cm' input
-            var columns = $(this).find(".columns-input").val(); // Get 'columns' input
-            var seconds = $(this).find(".seconds-input").val(); // Get 'seconds' input
+            var cm = $(this).find(".cm-input").val();
+            var columns = $(this).find(".columns-input").val();
+            var seconds = $(this).find(".seconds-input").val();
 
             if (selectedNewspapers && positively) {
                 selectedNewspapers.forEach(function (newspaperId) {
                     newspaperData.push({
                         newspaper_id: newspaperId,
                         positively: positively,
-                        cm: cm || null, // Add 'cm' with fallback to null
-                        columns: columns || null, // Add 'columns' with fallback to null
-                        seconds: seconds || null, // Add 'seconds' with fallback to null
+                        cm: cm || null,
+                        columns: columns || null,
+                        seconds: seconds || null,
                     });
                 });
             }
         });
-
-        // Append the 'newspaper' data as a single field
         formData.append("newspaper", JSON.stringify(newspaperData));
 
-        // Check the final data structure before sending it
         for (const [key, value] of formData.entries()) {
-            console.log(key + " : " + value); // Log the data to confirm structure
+            console.log(key + " : " + value);
         }
 
         $.ajax({
@@ -206,42 +199,20 @@ $(document).ready(function () {
                     $("#modalCategory").text(
                         $("#category option:selected").text()
                     );
-                    $("#modalCm").text($("#cm").val());
-                    $("#modalColumns").text($("#columns").val());
-                    $("#modalSeconds").text($("#seconds").val());
                     $("#modalSubject").text(
                         $("#subject option:selected").text()
                     );
                     $("#modalRefNo").text($("#ref_no").val());
                     $("#modalRefDate").text($("#ref_date").val());
-                    $("#modalPositively").text($("#positively").val());
-                    $("#modalInsertions").text($("#insertions").val());
-                    $("#modalNewspaper").text(
-                        $("#newspaper option:selected").text()
-                    );
-                    $("#modalLetterNo").text($("#letter_no").val());
                     $("#modalRemarks").text($("#remarks").val());
 
                     var advertisementType = $("#advertisementType").val();
                     if (advertisementType === "7") {
                         $("#modalCategoryContainer").show();
-                        $("#modalCmContainer").show();
-                        $("#modalColumnsContainer").show();
-                        $("#modalSecondsContainer").hide();
-                        $("#modalCm").text($("#cm").val());
-                        $("#modalColumns").text($("#columns").val());
                     } else if (advertisementType === "6") {
                         $("#modalCategoryContainer").hide();
-                        $("#modalCmContainer").hide();
-                        $("#modalColumnsContainer").hide();
-                        $("#modalSecondsContainer").show();
-                        $("#modalSeconds").text($("#seconds").val());
                     } else {
                         $("#modalCategoryContainer").hide();
-                        $("#modalSizeContainer").hide();
-                        $("#modalCmContainer").hide();
-                        $("#modalColumnsContainer").hide();
-                        $("#modalSecondsContainer").hide();
                     }
 
                     $("#formSubmissionModal").modal("show");
@@ -299,7 +270,8 @@ $(document).ready(function () {
             success: function (data) {
                 console.log("Complete Data Response:", data);
 
-                $("#advertisement-form").trigger("reset");
+                // Skip form reset to avoid interfering with select2 values
+                $("#advertisement-form")[0].reset(); // Skip triggering reset, manually set values instead
                 $("#id").val(data[0]["id"]);
 
                 if (data[0]["advertisement_type"]) {
@@ -329,25 +301,93 @@ $(document).ready(function () {
 
                 $("#payment_by").val(data[0]["payment_by"]);
                 $("#mipr_no").val(data[0]["mipr_no"]);
-                $("#seconds").val(data[0]["seconds"]);
-                $("#cm").val(data[0]["cm"]);
-                $("#columns").val(data[0]["columns"]);
-                if (data[0]["subject"]) {
-                    $("#subject").val(data[0]["subject"]["id"]);
-                }
                 $("#ref_no").val(data[0]["ref_no"]);
                 $("#ref_date").val(formatDateFromDB(data[0]["ref_date"]));
-                $("#positively").val(data[0]["positively_on"]);
-                $("#insertions").val(data[0]["no_of_entries"]);
                 if (data[0]["color"]) {
                     $("#color").val(data[0]["color"]["id"]);
                 }
                 if (data[0]["page_info"]) {
                     $("#page_info").val(data[0]["page_info"]["id"]);
                 }
-                $(".select2").select2();
+
                 $("#remarks").val(data[0]["remarks"]);
                 $("#users-tab").tab("show");
+
+                // Grouping and populating rows based on assigned_news data
+                const assignedNewsData = data[0]["assigned_news"];
+                const groupedData = {};
+
+                // Group the data based on `positively_on`, `cm`, `columns`, and `seconds`
+                assignedNewsData.forEach((newsItem) => {
+                    const key = `${newsItem["positively_on"]}-${newsItem["cm"]}-${newsItem["columns"]}-${newsItem["seconds"]}`;
+
+                    if (!groupedData[key]) {
+                        groupedData[key] = {
+                            positively_on: newsItem["positively_on"],
+                            cm: newsItem["cm"],
+                            columns: newsItem["columns"],
+                            seconds: newsItem["seconds"],
+                            newspapers: [],
+                        };
+                    }
+
+                    // Add newspaper details to the group
+                    groupedData[key].newspapers.push(newsItem["empanelled_id"]);
+                });
+
+                // Now loop through the grouped data to populate rows
+                Object.values(groupedData).forEach((group, index) => {
+                    addAssignedNewsRow(); // Create a new row for this group
+
+                    const rowIndex = assignedNewsIndex - 1; // Adjust row index based on the increment
+
+                    // Set values dynamically for each row
+                    $(`#positively-${rowIndex}`).val(group.positively_on);
+
+                    // Set cm and columns based on advertisement type
+                    if (data[0]["advertisement_type"]["id"] === 7) {
+                        $(`#cm-${rowIndex}`).val(group.cm);
+                        $(`#columns-${rowIndex}`).val(group.columns);
+                        $(`#seconds-${rowIndex}`).val(""); // Empty seconds for Print type
+                    } else if (data[0]["advertisement_type"]["id"] === 6) {
+                        $(`#seconds-${rowIndex}`).val(group.seconds);
+                        $(`#cm-${rowIndex}`).val(""); // Empty cm for Seconds type
+                        $(`#columns-${rowIndex}`).val(""); // Empty columns for Seconds type
+                    }
+
+                    // Handle the newspaper selection dynamically
+                    const newspaperSelect = $(
+                        `select[name="assigned_news[${rowIndex}][newspaper][]"]`
+                    );
+                    console.log("Newspaper IDs:", group.newspapers); // Debug log to check newspaper ids
+
+                    // Destroy previous select2 instance and reinitialize it
+                    newspaperSelect.select2("destroy").empty();
+
+                    // Add the options dynamically based on available newspapers (empanelled news)
+                    group.newspapers.forEach((newspaperId) => {
+                        const newspaperData = data[0]["assigned_news"].find(
+                            (item) => item.empanelled_id == newspaperId
+                        );
+                        if (newspaperData) {
+                            const option = new Option(
+                                newspaperData.empanelled.news_name,
+                                newspaperId,
+                                true,
+                                true
+                            );
+                            newspaperSelect.append(option);
+                        }
+                    });
+
+                    // Re-initialize select2 after populating the options
+                    newspaperSelect.select2();
+                });
+
+                // Initialize select2 only once after all rows are populated and options are set
+                $(".select2").each(function () {
+                    $(this).select2();
+                });
             },
             error: function (xhr, status, error) {
                 console.error("AJAX Error:", xhr.responseText);
