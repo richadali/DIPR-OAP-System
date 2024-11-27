@@ -107,54 +107,46 @@ use Carbon\Carbon;
             </td>
         </tr>
         <tr>
-            <td></td>
-            <td width="70%" class="just_align"><b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b></td>
-        </tr>
-        <tr>
-            <td class="center-box">
-                <div class="inner-box">
-                    <b>To be published <br>Positively on<br>
-                        @foreach($newsGroup->pluck('positively_on') as $date)
-                        {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
-                        @if(!$loop->last), @endif
-                        @endforeach
-                    </b>
-                </div>
-            </td>
-            <td class="just_align">
-                (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
-                points.
-            </td>
-        </tr>
-        <tr>
-            @if(!empty($advertisement->remarks))
-            <td class="remarks-box">
-                <div class="remarks-text">
-                    {{ $advertisement->remarks }}
-                </div>
-            </td>
-            @else
-            <td></td>
-            @endif
+            <td style="width: 30%; vertical-align: top;">
 
-            <td class="just_align">(d) Spacing between the 'Heading' or 'headings' and the contents of advertisement
-                or
-                between its paragraph(s) or between paragraph and the designation of the issuing authority should
-                not
-                exceed 3 point lead.</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td class="just_align">(e) The Standard width of the advertisement column should not be less than 4.5
-                centimetres. </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td class="just_align">(f) The advertisement if publish in <b>{{ $newsGroup->first()->columns }}
+                <div class="center-box" style="margin-top:60px">
+                    <div class="inner-box">
+                        <b>To be published <br>Positively on<br>
+                            @foreach($newsGroup->pluck('positively_on') as $date)
+                            {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
+                            @if(!$loop->last), @endif
+                            @endforeach
+                        </b>
+                    </div>
+                </div>
+                @if(!empty($advertisement->remarks))
+                <div class="remarks-box">
+                    <div class="remarks-text">
+                        {{ $advertisement->remarks }}
+                    </div>
+                </div>
+                @endif
+            </td>
+
+            <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
+                (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
+                points.<br><br>
+                (b) Sub-heading of an advertisement should not exceed '12' points type face size.<br><br>
+                (c) The content of advertisement except the headlines or heading/Sub-heading should not exceed 12 point
+                type face size.<br><br>
+                (d) Spacing between the 'Heading' or 'headings' and the contents of advertisement or between its
+                paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3 point
+                lead.<br><br>
+                (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
+                (f) The advertisement if publish in <b>{{ $newsGroup->first()->columns }}
                     column(s)</b>
                 should not exceed <b>{{ $newsGroup->first()->cm }}
-                    centimeters.</td></b>
+                    centimeters.
+                </b><br>
+            </td>
         </tr>
+
         <tr>
             <td colspan="2"><b><u>N.B.</u>:-</b></td>
         </tr>
@@ -209,6 +201,8 @@ use Carbon\Carbon;
 </body>
 @endforeach
 
+
+{{-- Office & Department Copy --}}
 @for ($i = 0; $i < 2; $i++) <body>
     <table>
         <tr>
@@ -233,8 +227,6 @@ use Carbon\Carbon;
                 .........................................................................................................<br>
             </td>
         </tr>
-
-        <!-- Create a table with two columns: left for the newspapers and dates, right for the instructions -->
         <tr>
             <td style="width: 30%; vertical-align: top;">
                 @php
@@ -251,9 +243,9 @@ use Carbon\Carbon;
                     @endforeach
                     <div class="center-box" style="margin-top: 5px;">
                         <div class="inner-box">
-                            <span style="font-size: 12px;"><b>To be published positively on {{
+                            <span style="font-size: 12px;"><b>To be published positively on <br> {{
                                     Carbon::parse($date)->format('jS F,
-                                    Y') }}</b></span>
+                                    Y') }}</br></span>
                         </div>
                     </div>
                     @endforeach
@@ -278,12 +270,10 @@ use Carbon\Carbon;
                 paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3 point
                 lead.<br><br>
                 (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
-                (f) The advertisement if published in column(s) should not exceed
+                (f) The advertisement if published in ___ column(s) should not exceed ___
                 centimeters.<br>
             </td>
         </tr>
-
-        <!-- Remaining content (footer) -->
         <tr>
             <td colspan="2">
                 <b><u>N.B.</u>:-</b><br>
@@ -337,7 +327,7 @@ use Carbon\Carbon;
 
     {{-- For Video/Radio --}}
     @elseif($advertisement->advertisement_type_id == 6)
-    @foreach($advertisement->assigned_news as $assignedNews)
+    @foreach($groupedAssignedNews as $empanelledId => $newsGroup)
 
     <body>
 
@@ -362,36 +352,37 @@ use Carbon\Carbon;
             </tr>
             <tr>
                 <td colspan="2">The Editor/Advertisement Manager:
-                    <b>{{ $assignedNews->empanelled->news_name }}</b><br>
+                    <b>{{ $newsGroup->first()->empanelled->news_name }}</b><br>
 
                 </td>
             </tr>
             <tr>
-                <td></td>
-                <td width="70%" class="just_align"><b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b></td>
-            </tr>
+                <td style="width: 30%; vertical-align: top;">
 
-            <tr>
-                <td class="center-box">
-                    <div class="inner-box">
-                        <b>To be published <br>Positively on<br>{{ $advertisement->positively_on}}</b>
+                    <div class="center-box" style="margin-top:20px">
+                        <div class="inner-box">
+                            <b>To be broadcasted <br>Positively on<br>
+                                @foreach($newsGroup->pluck('positively_on') as $date)
+                                {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
+                                @if(!$loop->last), @endif
+                                @endforeach
+                            </b>
+                        </div>
                     </div>
-                </td>
-                <td class="just_align">(a) The Advertisement for Electronic Media should be broadcasted for
-                    <b>{{ $advertisement->seconds }} seconds</b>.
+                    @if(!empty($advertisement->remarks))
+                    <div class="remarks-box">
+                        <div class="remarks-text">
+                            {{ $advertisement->remarks }}
+                        </div>
+                    </div>
+                    @endif
                 </td>
 
-            </tr>
-            <tr>
-                @if(!empty($advertisement->remarks))
-                <td class="remarks-box">
-                    <div class="remarks-text">
-                        {{ $advertisement->remarks }}
-                    </div>
+                <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                    <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                    (a) The Advertisement for Electronic Media should be broadcasted for
+                    <b>{{ $newsGroup->first()->seconds }} seconds</b><br>
                 </td>
-                @else
-                <td></td>
-                @endif
             </tr>
             <tr>
                 <td colspan="2"><b><u>N.B.</u>:-</b></td>
@@ -447,6 +438,7 @@ use Carbon\Carbon;
     </body>
     @endforeach
 
+    {{-- Office & Department Copy --}}
     @for ($i = 0; $i < 2; $i++) <body>
         <table>
             <tr>
@@ -469,35 +461,46 @@ use Carbon\Carbon;
             </tr>
             <tr>
                 <td colspan="2">The Editor/Advertisement Manager:
-                    <b>{{ $advertisement->assigned_news->pluck('empanelled.news_name')->implode(', ') }}</b><br>
+                    .........................................................................................................<br>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 30%; vertical-align: top;">
+                    @php
+                    $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
+                    @endphp
 
-                </td>
-            </tr>
-            <tr>
-                <td></td>
-                <td width="70%" class="just_align"><b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b></td>
-            </tr>
-            <tr>
-                <td class="center-box">
-                    <div class="inner-box">
-                        <b>To be published <br>Positively on<br>{{ $advertisement->positively_on}}</b>
+                    @foreach($groupedNews as $date => $newsGroup)
+                    <div style="margin-top: 15px">
+                        @foreach($newsGroup as $news)
+                        <div>
+                            <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,
+                            <span style="font-size: 12px;">({{ $news->seconds }}sec)</span><br>
+                        </div>
+                        @endforeach
+                        <div class="center-box" style="margin-top: 5px;">
+                            <div class="inner-box">
+                                <span style="font-size: 12px;"><b>To be broadcasted positively on <br> {{
+                                        Carbon::parse($date)->format('jS F,
+                                        Y') }}</br></span>
+                            </div>
+                        </div>
+                        @endforeach
                     </div>
-                </td>
-                <td class="just_align">(a) The Advertisement for Electronic Media should be broadcasted for
-                    <b>{{ $advertisement->seconds }} seconds</b>.
+                    @if(!empty($advertisement->remarks))
+                    <div class="remarks-box">
+                        <div class="remarks-text">
+                            {{ $advertisement->remarks }}
+                        </div>
+                    </div>
+                    @endif
                 </td>
 
-            </tr>
-            <tr>
-                @if(!empty($advertisement->remarks))
-                <td class="remarks-box">
-                    <div class="remarks-text">
-                        {{ $advertisement->remarks }}
-                    </div>
+                <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                    <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                    (a) The Advertisement for Electronic Media should be broadcasted for
+                    ___ seconds<br>
                 </td>
-                @else
-                <td></td>
-                @endif
             </tr>
             <tr>
                 <td colspan="2"><b><u>N.B.</u>:-</b></td>
@@ -554,7 +557,7 @@ use Carbon\Carbon;
 
         {{-- For Online Media --}}
         @elseif($advertisement->advertisement_type_id == 8)
-        @foreach($advertisement->assigned_news as $assignedNews)
+        @foreach($groupedAssignedNews as $empanelledId => $newsGroup)
 
         <body>
 
@@ -579,37 +582,39 @@ use Carbon\Carbon;
                 </tr>
                 <tr>
                     <td colspan="2">The Editor/Advertisement Manager:
-                        <b>{{ $assignedNews->empanelled->news_name }}</b><br>
+                        <b>{{ $newsGroup->first()->empanelled->news_name }}</b><br>
 
                     </td>
                 </tr>
                 <tr>
-                    <td></td>
-                    <td width="70%" class="just_align"><b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b></td>
-                </tr>
-                <tr>
-                    <td class="center-box">
-                        <div class="inner-box">
-                            <b>To be published <br>Positively on<br>{{ $advertisement->positively_on}} <br>(@Rs.{{
-                                $amount}}/- inclusive of all Taxes)</b>
+                    <td style="width: 30%; vertical-align: top;">
+
+                        <div class="center-box" style="margin-top:20px">
+                            <div class="inner-box">
+                                <b>To be broadcasted <br>Positively on<br>
+                                    @foreach($newsGroup->pluck('positively_on') as $date)
+                                    {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
+                                    @if(!$loop->last), @endif
+                                    @endforeach
+                                </b>
+                                <br><b>(@Rs.{{
+                                    $amount}}/- inclusive of all Taxes)</b>
+                            </div>
                         </div>
-                    </td>
-                    <td class="just_align">(a) The Advertisement should be uploaded/broadcasted by the
-                        <b><i><u>Electronic
-                                    Media</u></i></b> in type face size not exceeding 14 points.
-                    </td>
-                </tr>
-                <tr>
-                    @if(!empty($advertisement->remarks))
-                    <td class="remarks-box">
-                        <div class="remarks-text">
-                            {{ $advertisement->remarks }}
+                        @if(!empty($advertisement->remarks))
+                        <div class="remarks-box">
+                            <div class="remarks-text">
+                                {{ $advertisement->remarks }}
+                            </div>
                         </div>
+                        @endif
                     </td>
-                    @else
-                    <td></td>
-                    @endif
-                    <td></td>
+
+                    <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                        <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                        (a) The Advertisement should be uploaded/broadcasted by the
+                        <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
+                    </td>
                 </tr>
                 <tr>
                     <td colspan="2"><b><u>N.B.</u>:-</b></td>
@@ -671,6 +676,7 @@ use Carbon\Carbon;
         </body>
         @endforeach
 
+        {{-- Office & Department Copy --}}
         @for ($i = 0; $i < 2; $i++) <body>
             <table>
                 <tr>
@@ -693,38 +699,45 @@ use Carbon\Carbon;
                 </tr>
                 <tr>
                     <td colspan="2">The Editor/Advertisement Manager:
-                        <b>{{ $advertisement->assigned_news->pluck('empanelled.news_name')->implode(', ') }}</b><br>
+                        .........................................................................................................<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 30%; vertical-align: top;">
+                        @php
+                        $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
+                        @endphp
 
-                    </td>
-                </tr>
-                <tr>
-                    <td></td>
-                    <td width="70%" class="just_align"><b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b></td>
-                </tr>
-                <tr>
-                    <td class="center-box">
-                        <div class="inner-box">
-                            <b>To be published <br>Positively on<br>{{ $advertisement->positively_on}} <br>(@Rs.{{
-                                $amount}}/- inclusive of all Taxes)</b>
+                        @foreach($groupedNews as $date => $newsGroup)
+                        <div style="margin-top: 15px">
+                            @foreach($newsGroup as $news)
+                            <div>
+                                <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,<br>
+                            </div>
+                            @endforeach
+                            <div class="center-box" style="margin-top: 5px;">
+                                <div class="inner-box">
+                                    <span style="font-size: 12px;"><b>To be broadcasted positively on <br>{{
+                                            Carbon::parse($date)->format('jS F,
+                                            Y') }}</br></span>
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
+                        @if(!empty($advertisement->remarks))
+                        <div class="remarks-box">
+                            <div class="remarks-text">
+                                {{ $advertisement->remarks }}
+                            </div>
+                        </div>
+                        @endif
                     </td>
-                    <td class="just_align">(a) The Advertisement should be uploaded/broadcasted by the
-                        <b><i><u>Electronic
-                                    Media</u></i></b> in type face size not exceeding 14 points.
-                    </td>
-                </tr>
 
-                <tr>
-                    @if(!empty($advertisement->remarks))
-                    <td class="remarks-box">
-                        <div class="remarks-text">
-                            {{ $advertisement->remarks }}
-                        </div>
+                    <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                        <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                        (a) The Advertisement should be uploaded/broadcasted by the
+                        <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
                     </td>
-                    @else
-                    <td></td>
-                    @endif
-                    <td></td>
                 </tr>
                 <tr>
                     <td colspan="2"><b><u>N.B.</u>:-</b></td>
