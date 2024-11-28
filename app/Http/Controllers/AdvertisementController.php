@@ -111,6 +111,9 @@ class AdvertisementController extends Controller
                                 'page_info_id' => $request->page_info,
                                 'payment_by' => $request->payment_by,
                                 'mipr_no' => $request->mipr_no,
+                                'message_subject' => $request->message_subject,
+                                'message_body' => $request->message_body,
+                                'message_copy_to' => $request->message_copy_to,
                                 'updated_at' => now(),
                             ]);
 
@@ -150,6 +153,9 @@ class AdvertisementController extends Controller
                         $advertisement->page_info_id = $request->page_info;
                         $advertisement->payment_by = $request->payment_by;
                         $advertisement->mipr_no = $request->mipr_no;
+                        $advertisement->message_body = $request->message_body;
+                        $advertisement->message_subject = $request->message_subject;
+                        $advertisement->message_copy_to = $request->message_copy_to;
                         $advertisement->save();
 
                         foreach ($newspaperData as $assignedNews) {

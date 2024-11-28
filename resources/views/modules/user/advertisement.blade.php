@@ -420,6 +420,25 @@
                     </div>
                   </div>
 
+                  <div class="col-md-6" id="messageContainer" style="display:none">
+                    <label for="messageSubject" class="form-label"><b>Message Subject</b></label>
+                    <input type="text" name="message_subject" id="message_subject" class="form-control"
+                      placeholder="Enter message subject"><br>
+                    <label for="messageBody" class="form-label"><b>Message Body</b></label>
+                    <textarea name="message_body" id="message_body" class="form-control" rows="6"
+                      placeholder="Enter message body">
+                      <p>Sir/Madam,</p>
+                      <p>With reference to the above, please find enclosed herewith the 'Message' of the Hon'ble Governor of Meghalaya on the occasion of the <em><strong>'Seng Kut Snem'</strong></em> to be published in your esteemed Newspaper on the <span style="text-decoration: underline;"><strong>23rd Novermber, 2024</strong></span> <strong>in the FRONT PAGE positively in the</strong> <strong>size 10cms x 3columns.</strong></p>
+<p><span style="text-decoration: underline;"><em><strong>Please note that as per the Warrant of Precedence, the message of the Hon'ble Governor should be placed on top followed below by the messages of the Hon'ble Chief Minister and Hon'ble Speaker.</strong></em></span></p>
+<p>Bill may be addressed to Joint Secretary to the Governor of Meghalaya, Governor's Secretariat, Meghalaya, Shillong, through DIPR for arranging of payment.</p>
+                    </textarea><br>
+
+                    <input type="text" name="message_copy_to" id="message_copy_to" class="form-control"
+                      placeholder="Enter copy to">
+
+                  </div>
+
+
                   <div class="col-md-12 mt-3 mb-3">
                     <b>Assign Organization(s) to Publishing Dates</b>
                     <div class="border p-4 rounded">

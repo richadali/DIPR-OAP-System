@@ -77,263 +77,116 @@ use Carbon\Carbon;
     </style>
 </head>
 
-
-{{-- For Print --}}
-@if($advertisement->advertisement_type_id == 7)
-@foreach($groupedAssignedNews as $empanelledId => $newsGroup)
-
-<body>
-    <table>
+{{-- For Messages --}}
+@if($advertisement->subject_id == 11)
+@for ($i = 0; $i < 3; $i++) <body>
+    <table style="width: 100%;">
         <tr>
-            <td colspan="2" class="heading">GOVERNMENT OF MEGHALAYA</td>
+            <td colspan="2" class="heading" style="text-align: center;">GOVERNMENT OF MEGHALAYA</td>
         </tr>
         <tr>
-            <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
+            <td colspan="2" class="heading" style="text-align: center;">DIRECTORATE OF INFORMATION & PUBLIC
+                RELATIONS
+            </td>
         </tr>
         <tr>
             <td colspan="2"><br></td>
         </tr>
         <tr>
-            <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{ $advertisement->mipr_no
-                    }}</b>…………………Dated Shillong, the ……<b>{{ Carbon::parse($advertisement->issue_date)->format('jS F,
-                    Y') }}</b>....</td>
+            <td colspan="2" style="width: 100%;">
+                <div style="width: 100%; position: relative;">
+                    <span style="float: left;">
+                        No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{ $advertisement->mipr_no
+                            }}</b>
+                    </span>
+                    <span style="float: right;">
+                        Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F, Y')
+                            }}</b>
+                    </span>
+                </div>
+            </td>
+        </tr>
+        <br><br>
+        <tr>
+            <td style="vertical-align: top">From:</td>
+            <td>Director of Information & Public Relations,<br>
+                Meghalaya, Shillong
+            </td>
         </tr>
         <tr>
             <td colspan="2">To,</td>
-        </tr>
-        <tr>
-            <td colspan="2">The Editor/Advertisement Manager:
-                <b>{{ $newsGroup->first()->empanelled->news_name }}</b><br>
-            </td>
-        </tr>
-        <tr>
-            <td style="width: 30%; vertical-align: top;">
-
-                <div class="center-box" style="margin-top:60px">
-                    <div class="inner-box">
-                        <b>To be published <br>Positively on<br>
-                            @foreach($newsGroup->pluck('positively_on') as $date)
-                            {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
-                            @if(!$loop->last), @endif
-                            @endforeach
-                        </b>
-                    </div>
-                </div>
-                @if(!empty($advertisement->remarks))
-                <div class="remarks-box">
-                    <div class="remarks-text">
-                        {{ $advertisement->remarks }}
-                    </div>
-                </div>
-                @endif
-            </td>
-
-            <td style="width: 70%; vertical-align: top; padding-left: 10px;">
-                <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
-                (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
-                points.<br><br>
-                (b) Sub-heading of an advertisement should not exceed '12' points type face size.<br><br>
-                (c) The content of advertisement except the headlines or heading/Sub-heading should not exceed 12 point
-                type face size.<br><br>
-                (d) Spacing between the 'Heading' or 'headings' and the contents of advertisement or between its
-                paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3 point
-                lead.<br><br>
-                (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
-                (f) The advertisement if publish in <b>{{ $newsGroup->first()->columns }}
-                    column(s)</b>
-                should not exceed <b>{{ $newsGroup->first()->cm }}
-                    centimeters.
-                </b><br>
-            </td>
-        </tr>
-
-        <tr>
-            <td colspan="2"><b><u>N.B.</u>:-</b></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <ol>
-                    <li>Bills for <b><i><u>Government Departments</u></i></b> should be submitted to Directorate of
-                        Information & Public Relations, Meghalaya, Shillong for arrangement of payment.</li>
-                    <li>Bills for <b><i><u>Public Sector Undertakings, Units/Corporations/Autonomous Bodies/Other
-                                    Agencies</u></i></b> of the Government may be addressed to
-                        @if($advertisement->payment_by == "D")
-                        _____________________________________________
-                        @else
-                        the <b><i>{{$advertisement->department->dept_name}}</i></b>
-                        @endif
-                        for payment
-                        and should be routed through DIPR for verification of the rate of advertisement as approved
-                        by
-                        the Government from time to time.</li>
-                </ol>
-            </td>
         </tr>
         <tr>
             <td></td>
-            <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
-        </tr>
-        <tr>
-            <td colspan="2">Copy to the:-</td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <ol>
-                    <li>{{$advertisement->department->dept_name}} for information and necessary action. This has a
-                        reference to letter No.
-                        <b><i>{{ $advertisement->ref_no }} Dated {{
-                                \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b>
-                    </li>
-                    <li>Advertisement section, for information and necessary action.</li>
-                </ol>
-            </td>
-        </tr>
-        <tr>
-            <td class="border-box">
-                <div class="bordered-text">
-                    {{ $advertisement->department->dept_name}}
-                </div>
-            </td>
-            <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
-        </tr>
-    </table>
-
-</body>
-@endforeach
-
-
-{{-- Office & Department Copy --}}
-@for ($i = 0; $i < 2; $i++) <body>
-    <table>
-        <tr>
-            <td colspan="2" class="heading">GOVERNMENT OF MEGHALAYA</td>
-        </tr>
-        <tr>
-            <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
-        </tr>
-        <tr>
-            <td colspan="2"><br></td>
-        </tr>
-        <tr>
-            <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no}}/{{ date('y') }}/{{ $advertisement->mipr_no
-                    }}</b>…………………Dated Shillong, the ……<b>{{ Carbon::parse($advertisement->issue_date)->format('jS F,
-                    Y') }}</b>....</td>
-        </tr>
-        <tr>
-            <td colspan="2">To,</td>
-        </tr>
-        <tr>
-            <td colspan="2">The Editor/Advertisement Manager:
-                .........................................................................................................<br>
-            </td>
-        </tr>
-        <tr>
-            <td style="width: 30%; vertical-align: top;">
+            <td>
                 @php
                 $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
                 @endphp
-
+                Editor,
                 @foreach($groupedNews as $date => $newsGroup)
-                <div style="margin-top: 15px">
+                <div>
                     @foreach($newsGroup as $news)
                     <div>
-                        <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,
-                        <span style="font-size: 12px;">({{ $news->columns }}col x {{ $news->cm }}cm)</span><br>
+                        {{ $news->empanelled->news_name }}<br>
                     </div>
                     @endforeach
-                    <div class="center-box" style="margin-top: 5px;">
-                        <div class="inner-box">
-                            <span style="font-size: 12px;"><b>To be published positively on <br> {{
-                                    Carbon::parse($date)->format('jS F,
-                                    Y') }}</br></span>
-                        </div>
-                    </div>
                     @endforeach
                 </div>
-                @if(!empty($advertisement->remarks))
-                <div class="remarks-box">
-                    <div class="remarks-text">
-                        {{ $advertisement->remarks }}
-                    </div>
-                </div>
-                @endif
             </td>
-
-            <td style="width: 70%; vertical-align: top; padding-left: 10px;">
-                <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
-                (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
-                points.<br><br>
-                (b) Sub-heading of an advertisement should not exceed '12' points type face size.<br><br>
-                (c) The content of advertisement except the headlines or heading/Sub-heading should not exceed 12 point
-                type face size.<br><br>
-                (d) Spacing between the 'Heading' or 'headings' and the contents of advertisement or between its
-                paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3 point
-                lead.<br><br>
-                (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
-                (f) The advertisement if published in ___ column(s) should not exceed ___
-                centimeters.<br>
+        </tr><br><br>
+        <tr>
+            <td style="width: 10%; vertical-align: top;">Sub:</td>
+            <td style="width: 90%; vertical-align: top;"><i><b>{{ $advertisement->message_subject }}</b></i><br>
             </td>
         </tr>
         <tr>
             <td colspan="2">
-                <b><u>N.B.</u>:-</b><br>
-                <ol>
-                    <li>Bills for <b><i><u>Government Departments</u></i></b> should be submitted to Directorate of
-                        Information & Public Relations, Meghalaya, Shillong for arrangement of payment.</li>
-                    <li>Bills for <b><i><u>Public Sector Undertakings, Units/Corporations/Autonomous Bodies/Other
-                                    Agencies</u></i></b> of the Government may be addressed to
-                        @if($advertisement->payment_by == "D")
-                        _____________________________________________
-                        @else
-                        the <b><i>{{ $advertisement->department->dept_name }}</i></b>
-                        @endif
-                        for payment and should be routed through DIPR for verification of the rate of advertisement as
-                        approved by the Government from time to time.
-                    </li>
-                </ol>
+                {!! $advertisement->message_body !!}
+            </td>
+        </tr><br><br>
+        <tr>
+            <td colspan="2" style="text-align: right; padding-bottom: 30px;">
+                <div style="display: inline-block; text-align: center;">
+                    Yours faithfully,<br><br><br><br>
+                    <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                </div>
             </td>
         </tr>
+        @if(!empty($advertisement->message_copy_to))
         <tr>
-            <td></td>
-            <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya,
-                Shillong.</td>
-        </tr>
-        <tr>
-            <td colspan="2">Copy to the:-</td>
+            <td colspan="2">
+                M /Advt./{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{ $advertisement->mipr_no }} - A<br>
+                Copy to:-
+            </td>
         </tr>
         <tr>
             <td colspan="2">
-                <ol>
-                    <li>{{ $advertisement->department->dept_name }} for information and necessary action. This has a
-                        reference to letter No. <b><i>{{ $advertisement->ref_no }} Dated {{
-                                \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b></li>
-                    <li>Advertisement section, for information and necessary action.</li>
-                </ol>
+                {{ $advertisement->message_copy_to }}
             </td>
         </tr>
+        <br><br><br>
         <tr>
-            <td class="border-box">
-                <div class="bordered-text">
-                    {{ $advertisement->department->dept_name }}
+            <td colspan="2" style="text-align: right;">
+                <div style="display: inline-block; text-align: center;">
+                    <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
                 </div>
             </td>
-            <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
         </tr>
+        @endif
     </table>
-
     </body>
     @endfor
+    @else
+    {{-- End of Message --}}
 
-
-    {{-- For Video/Radio --}}
-    @elseif($advertisement->advertisement_type_id == 6)
+    {{-- For Print --}}
+    @if($advertisement->advertisement_type_id == 7)
     @foreach($groupedAssignedNews as $empanelledId => $newsGroup)
 
     <body>
-
         <table>
             <tr>
-                <td colspan="2" class="heading">GOVERNMENT OF MEGALAYA</td>
+                <td colspan="2" class="heading">GOVERNMENT OF MEGHALAYA</td>
             </tr>
             <tr>
                 <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
@@ -342,26 +195,33 @@ use Carbon\Carbon;
                 <td colspan="2"><br></td>
             </tr>
             <tr>
-                <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no}}/{{ date('y') }}/{{
-                        $advertisement->mipr_no
-                        }}</b>…………………Dated Shillong, the ……<b>{{
-                        Carbon::parse($advertisement->issue_date)->format('jS F, Y') }}</b>....</td>
-            </tr>
+                <td colspan="2" style="width: 100%;">
+                    <div style="width: 100%; position: relative;">
+                        <span style="float: left;">
+                            No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{ $advertisement->mipr_no
+                                }}</b>
+                        </span>
+                        <span style="float: right;">
+                            Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F, Y')
+                                }}</b>
+                        </span>
+                    </div>
+                </td>
+            </tr><br>
             <tr>
                 <td colspan="2">To,</td>
             </tr>
             <tr>
                 <td colspan="2">The Editor/Advertisement Manager:
                     <b>{{ $newsGroup->first()->empanelled->news_name }}</b><br>
-
                 </td>
             </tr>
             <tr>
                 <td style="width: 30%; vertical-align: top;">
 
-                    <div class="center-box" style="margin-top:20px">
+                    <div class="center-box" style="margin-top:60px">
                         <div class="inner-box">
-                            <b>To be broadcasted <br>Positively on<br>
+                            <b>To be published <br>Positively on<br>
                                 @foreach($newsGroup->pluck('positively_on') as $date)
                                 {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
                                 @if(!$loop->last), @endif
@@ -379,11 +239,26 @@ use Carbon\Carbon;
                 </td>
 
                 <td style="width: 70%; vertical-align: top; padding-left: 10px;">
-                    <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
-                    (a) The Advertisement for Electronic Media should be broadcasted for
-                    <b>{{ $newsGroup->first()->seconds }} seconds</b><br>
+                    <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
+                    (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
+                    points.<br><br>
+                    (b) Sub-heading of an advertisement should not exceed '12' points type face size.<br><br>
+                    (c) The content of advertisement except the headlines or heading/Sub-heading should not exceed 12
+                    point
+                    type face size.<br><br>
+                    (d) Spacing between the 'Heading' or 'headings' and the contents of advertisement or between its
+                    paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3
+                    point
+                    lead.<br><br>
+                    (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
+                    (f) The advertisement if publish in <b>{{ $newsGroup->first()->columns }}
+                        column(s)</b>
+                    should not exceed <b>{{ $newsGroup->first()->cm }}
+                        centimeters.
+                    </b><br>
                 </td>
             </tr>
+
             <tr>
                 <td colspan="2"><b><u>N.B.</u>:-</b></td>
             </tr>
@@ -405,10 +280,14 @@ use Carbon\Carbon;
                             the Government from time to time.</li>
                     </ol>
                 </td>
-            </tr>
+            </tr><br>
             <tr>
                 <td></td>
-                <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
+                <td colspan="2" style="text-align: right;">
+                    <div style="display: inline-block; text-align: center;">
+                        <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td colspan="2">Copy to the:-</td>
@@ -424,25 +303,30 @@ use Carbon\Carbon;
                         <li>Advertisement section, for information and necessary action.</li>
                     </ol>
                 </td>
-            </tr>
+            </tr><br>
             <tr>
                 <td class="border-box">
                     <div class="bordered-text">
                         {{ $advertisement->department->dept_name}}
                     </div>
                 </td>
-                <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
+                <td colspan="2" style="text-align: right;">
+                    <div style="display: inline-block; text-align: center;">
+                        <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    </div>
+                </td>
             </tr>
         </table>
 
     </body>
     @endforeach
 
+
     {{-- Office & Department Copy --}}
     @for ($i = 0; $i < 2; $i++) <body>
         <table>
             <tr>
-                <td colspan="2" class="heading">GOVERNMENT OF MEGALAYA</td>
+                <td colspan="2" class="heading">GOVERNMENT OF MEGHALAYA</td>
             </tr>
             <tr>
                 <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
@@ -451,11 +335,19 @@ use Carbon\Carbon;
                 <td colspan="2"><br></td>
             </tr>
             <tr>
-                <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no}}/{{ date('y') }}/{{
-                        $advertisement->mipr_no
-                        }}</b>…………………Dated Shillong, the ……<b>{{
-                        Carbon::parse($advertisement->issue_date)->format('jS F, Y') }}</b>....</td>
-            </tr>
+                <td colspan="2" style="width: 100%;">
+                    <div style="width: 100%; position: relative;">
+                        <span style="float: left;">
+                            No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{ $advertisement->mipr_no
+                                }}</b>
+                        </span>
+                        <span style="float: right;">
+                            Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F, Y')
+                                }}</b>
+                        </span>
+                    </div>
+                </td>
+            </tr><br>
             <tr>
                 <td colspan="2">To,</td>
             </tr>
@@ -475,12 +367,12 @@ use Carbon\Carbon;
                         @foreach($newsGroup as $news)
                         <div>
                             <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,
-                            <span style="font-size: 12px;">({{ $news->seconds }}sec)</span><br>
+                            <span style="font-size: 12px;">({{ $news->columns }}col x {{ $news->cm }}cm)</span><br>
                         </div>
                         @endforeach
                         <div class="center-box" style="margin-top: 5px;">
                             <div class="inner-box">
-                                <span style="font-size: 12px;"><b>To be broadcasted positively on <br> {{
+                                <span style="font-size: 12px;"><b>To be published positively on <br> {{
                                         Carbon::parse($date)->format('jS F,
                                         Y') }}</br></span>
                             </div>
@@ -497,16 +389,25 @@ use Carbon\Carbon;
                 </td>
 
                 <td style="width: 70%; vertical-align: top; padding-left: 10px;">
-                    <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
-                    (a) The Advertisement for Electronic Media should be broadcasted for
-                    ___ seconds<br>
+                    <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
+                    (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
+                    points.<br><br>
+                    (b) Sub-heading of an advertisement should not exceed '12' points type face size.<br><br>
+                    (c) The content of advertisement except the headlines or heading/Sub-heading should not exceed 12
+                    point
+                    type face size.<br><br>
+                    (d) Spacing between the 'Heading' or 'headings' and the contents of advertisement or between its
+                    paragraph(s) or between paragraph and the designation of the issuing authority should not exceed 3
+                    point
+                    lead.<br><br>
+                    (e) The Standard width of the advertisement column should not be less than 4.5 centimetres.<br><br>
+                    (f) The advertisement if published in ___ column(s) should not exceed ___
+                    centimeters.<br>
                 </td>
             </tr>
             <tr>
-                <td colspan="2"><b><u>N.B.</u>:-</b></td>
-            </tr>
-            <tr>
                 <td colspan="2">
+                    <b><u>N.B.</u>:-</b><br>
                     <ol>
                         <li>Bills for <b><i><u>Government Departments</u></i></b> should be submitted to Directorate of
                             Information & Public Relations, Meghalaya, Shillong for arrangement of payment.</li>
@@ -515,18 +416,22 @@ use Carbon\Carbon;
                             @if($advertisement->payment_by == "D")
                             _____________________________________________
                             @else
-                            the <b><i>{{$advertisement->department->dept_name}}</i></b>
+                            the <b><i>{{ $advertisement->department->dept_name }}</i></b>
                             @endif
-                            for payment
-                            and should be routed through DIPR for verification of the rate of advertisement as approved
-                            by
-                            the Government from time to time.</li>
+                            for payment and should be routed through DIPR for verification of the rate of advertisement
+                            as
+                            approved by the Government from time to time.
+                        </li>
                     </ol>
                 </td>
-            </tr>
+            </tr><br>
             <tr>
                 <td></td>
-                <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
+                <td colspan="2" style="text-align: right;">
+                    <div style="display: inline-block; text-align: center;">
+                        <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td colspan="2">Copy to the:-</td>
@@ -534,29 +439,35 @@ use Carbon\Carbon;
             <tr>
                 <td colspan="2">
                     <ol>
-                        <li>{{$advertisement->department->dept_name}} for information and necessary action.
-                            This has a reference to letter No.
-                            <b><i>{{ $advertisement->ref_no }} Dated {{
-                                    \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b>
-                        </li>
+                        <li>{{ $advertisement->department->dept_name }} for information and necessary action. This has a
+                            reference to letter No. <b><i>{{ $advertisement->ref_no }} Dated {{
+                                    \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b></li>
                         <li>Advertisement section, for information and necessary action.</li>
                     </ol>
                 </td>
-            </tr>
+            </tr><br>
             <tr>
                 <td class="border-box">
                     <div class="bordered-text">
-                        {{ $advertisement->department->dept_name}}
+                        {{ $advertisement->department->dept_name }}
                     </div>
                 </td>
-                <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.</td>
+                <td colspan="2" style="text-align: right;">
+                    <div style="display: inline-block; text-align: center;">
+                        <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    </div>
+                </td>
             </tr>
         </table>
+
         </body>
         @endfor
+        {{-- End of Office & Dept Copy --}}
+        {{-- End of Print --}}
 
-        {{-- For Online Media --}}
-        @elseif($advertisement->advertisement_type_id == 8)
+
+        {{-- For Electronic Media --}}
+        @elseif($advertisement->advertisement_type_id == 6)
         @foreach($groupedAssignedNews as $empanelledId => $newsGroup)
 
         <body>
@@ -572,11 +483,20 @@ use Carbon\Carbon;
                     <td colspan="2"><br></td>
                 </tr>
                 <tr>
-                    <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no}}/{{ date('y') }}/{{
-                            $advertisement->mipr_no
-                            }}</b>…………………Dated Shillong, the ……<b>{{
-                            Carbon::parse($advertisement->issue_date)->format('jS F, Y') }}</b>....</td>
-                </tr>
+                    <td colspan="2" style="width: 100%;">
+                        <div style="width: 100%; position: relative;">
+                            <span style="float: left;">
+                                No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{
+                                    $advertisement->mipr_no
+                                    }}</b>
+                            </span>
+                            <span style="float: right;">
+                                Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F, Y')
+                                    }}</b>
+                            </span>
+                        </div>
+                    </td>
+                </tr><br>
                 <tr>
                     <td colspan="2">To,</td>
                 </tr>
@@ -597,8 +517,6 @@ use Carbon\Carbon;
                                     @if(!$loop->last), @endif
                                     @endforeach
                                 </b>
-                                <br><b>(@Rs.{{
-                                    $amount}}/- inclusive of all Taxes)</b>
                             </div>
                         </div>
                         @if(!empty($advertisement->remarks))
@@ -612,8 +530,8 @@ use Carbon\Carbon;
 
                     <td style="width: 70%; vertical-align: top; padding-left: 10px;">
                         <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
-                        (a) The Advertisement should be uploaded/broadcasted by the
-                        <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
+                        (a) The Advertisement for Electronic Media should be broadcasted for
+                        <b>{{ $newsGroup->first()->seconds }} seconds</b><br>
                     </td>
                 </tr>
                 <tr>
@@ -640,10 +558,13 @@ use Carbon\Carbon;
                                 the Government from time to time.</li>
                         </ol>
                     </td>
-                </tr>
+                </tr><br>
                 <tr>
                     <td></td>
-                    <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    <td colspan="2" style="text-align: right;">
+                        <div style="display: inline-block; text-align: center;">
+                            <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                        </div>
                     </td>
                 </tr>
                 <tr>
@@ -661,14 +582,17 @@ use Carbon\Carbon;
                             <li>Advertisement section, for information and necessary action.</li>
                         </ol>
                     </td>
-                </tr>
+                </tr><br>
                 <tr>
                     <td class="border-box">
                         <div class="bordered-text">
                             {{ $advertisement->department->dept_name}}
                         </div>
                     </td>
-                    <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    <td colspan="2" style="text-align: right;">
+                        <div style="display: inline-block; text-align: center;">
+                            <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -689,17 +613,26 @@ use Carbon\Carbon;
                     <td colspan="2"><br></td>
                 </tr>
                 <tr>
-                    <td colspan="2">No. M /Advt./<b>{{ $miprFileNo->mipr_file_no}}/{{ date('y') }}/{{
-                            $advertisement->mipr_no
-                            }}</b>…………………Dated Shillong, the ……<b>{{
-                            Carbon::parse($advertisement->issue_date)->format('jS F, Y') }}</b>....</td>
-                </tr>
+                    <td colspan="2" style="width: 100%;">
+                        <div style="width: 100%; position: relative;">
+                            <span style="float: left;">
+                                No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{
+                                    $advertisement->mipr_no
+                                    }}</b>
+                            </span>
+                            <span style="float: right;">
+                                Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F, Y')
+                                    }}</b>
+                            </span>
+                        </div>
+                    </td>
+                </tr><br>
                 <tr>
                     <td colspan="2">To,</td>
                 </tr>
                 <tr>
                     <td colspan="2">The Editor/Advertisement Manager:
-                        .........................................................................................................<br>
+                        ..............................................................................................................<br>
                     </td>
                 </tr>
                 <tr>
@@ -712,12 +645,13 @@ use Carbon\Carbon;
                         <div style="margin-top: 15px">
                             @foreach($newsGroup as $news)
                             <div>
-                                <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,<br>
+                                <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,
+                                <span style="font-size: 12px;">({{ $news->seconds }}sec)</span><br>
                             </div>
                             @endforeach
                             <div class="center-box" style="margin-top: 5px;">
                                 <div class="inner-box">
-                                    <span style="font-size: 12px;"><b>To be broadcasted positively on <br>{{
+                                    <span style="font-size: 12px;"><b>To be broadcasted positively on <br> {{
                                             Carbon::parse($date)->format('jS F,
                                             Y') }}</br></span>
                                 </div>
@@ -735,8 +669,8 @@ use Carbon\Carbon;
 
                     <td style="width: 70%; vertical-align: top; padding-left: 10px;">
                         <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
-                        (a) The Advertisement should be uploaded/broadcasted by the
-                        <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
+                        (a) The Advertisement for Electronic Media should be broadcasted for
+                        ___ seconds<br>
                     </td>
                 </tr>
                 <tr>
@@ -763,10 +697,13 @@ use Carbon\Carbon;
                                 the Government from time to time.</li>
                         </ol>
                     </td>
-                </tr>
+                </tr><br>
                 <tr>
                     <td></td>
-                    <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    <td colspan="2" style="text-align: right;">
+                        <div style="display: inline-block; text-align: center;">
+                            <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                        </div>
                     </td>
                 </tr>
                 <tr>
@@ -783,20 +720,305 @@ use Carbon\Carbon;
                             <li>Advertisement section, for information and necessary action.</li>
                         </ol>
                     </td>
-                </tr>
+                </tr><br>
                 <tr>
                     <td class="border-box">
                         <div class="bordered-text">
                             {{ $advertisement->department->dept_name}}
                         </div>
                     </td>
-                    <td align="center"><i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                    <td colspan="2" style="text-align: right;">
+                        <div style="display: inline-block; text-align: center;">
+                            <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                        </div>
                     </td>
                 </tr>
             </table>
             </body>
             @endfor
-            @endif
+            {{-- End of Office & Dept Copy --}}
+            {{-- End of Electronic Media --}}
 
+            {{-- For Online Media --}}
+            @elseif($advertisement->advertisement_type_id == 8)
+            @foreach($groupedAssignedNews as $empanelledId => $newsGroup)
+
+            <body>
+
+                <table>
+                    <tr>
+                        <td colspan="2" class="heading">GOVERNMENT OF MEGALAYA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><br></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width: 100%;">
+                            <div style="width: 100%; position: relative;">
+                                <span style="float: left;">
+                                    No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{
+                                        $advertisement->mipr_no
+                                        }}</b>
+                                </span>
+                                <span style="float: right;">
+                                    Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F,
+                                        Y')
+                                        }}</b>
+                                </span>
+                            </div>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td colspan="2">To,</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">The Editor/Advertisement Manager:
+                            <b>{{ $newsGroup->first()->empanelled->news_name }}</b><br>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; vertical-align: top;">
+
+                            <div class="center-box" style="margin-top:20px">
+                                <div class="inner-box">
+                                    <b>To be broadcasted <br>Positively on<br>
+                                        @foreach($newsGroup->pluck('positively_on') as $date)
+                                        {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
+                                        @if(!$loop->last), @endif
+                                        @endforeach
+                                    </b>
+                                    <br><b>(@Rs.{{
+                                        $amount}}/- inclusive of all Taxes)</b>
+                                </div>
+                            </div>
+                            @if(!empty($advertisement->remarks))
+                            <div class="remarks-box">
+                                <div class="remarks-text">
+                                    {{ $advertisement->remarks }}
+                                </div>
+                            </div>
+                            @endif
+                        </td>
+
+                        <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                            <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                            (a) The Advertisement should be uploaded/broadcasted by the
+                            <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><b><u>N.B.</u>:-</b></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <ol>
+                                <li>Bills for <b><i><u>Government Departments</u></i></b> should be submitted to
+                                    Directorate
+                                    of
+                                    Information & Public Relations, Meghalaya, Shillong for arrangement of payment.</li>
+                                <li>Bills for <b><i><u>Public Sector Undertakings, Units/Corporations/Autonomous
+                                                Bodies/Other
+                                                Agencies</u></i></b> of the Government may be addressed to
+                                    @if($advertisement->payment_by == "D")
+                                    _____________________________________________
+                                    @else
+                                    the <b><i>{{$advertisement->department->dept_name}}</i></b>
+                                    @endif
+                                    for payment
+                                    and should be routed through DIPR for verification of the rate of advertisement as
+                                    approved
+                                    by
+                                    the Government from time to time.</li>
+                            </ol>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td></td>
+                        <td colspan="2" style="text-align: right;">
+                            <div style="display: inline-block; text-align: center;">
+                                <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Copy to the:-</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <ol>
+                                <li>{{$advertisement->department->dept_name}} for information and necessary action. This
+                                    has
+                                    a
+                                    reference to letter No.
+                                    <b><i>{{ $advertisement->ref_no }} Dated {{
+                                            \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b>
+                                </li>
+                                <li>Advertisement section, for information and necessary action.</li>
+                            </ol>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td class="border-box">
+                            <div class="bordered-text">
+                                {{ $advertisement->department->dept_name}}
+                            </div>
+                        </td>
+                        <td colspan="2" style="text-align: right;">
+                            <div style="display: inline-block; text-align: center;">
+                                <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+            </body>
+            @endforeach
+
+            {{-- Office & Department Copy --}}
+            @for ($i = 0; $i < 2; $i++) <body>
+                <table>
+                    <tr>
+                        <td colspan="2" class="heading">GOVERNMENT OF MEGALAYA</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="heading">DIRECTORATE OF INFORMATION & PUBLIC RELATIONS</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><br></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="width: 100%;">
+                            <div style="width: 100%; position: relative;">
+                                <span style="float: left;">
+                                    No. M /Advt./<b>{{ $miprFileNo->mipr_file_no }}/{{ date('y') }}/{{
+                                        $advertisement->mipr_no
+                                        }}</b>
+                                </span>
+                                <span style="float: right;">
+                                    Dated Shillong, the <b>{{ Carbon::parse($advertisement->issue_date)->format('jS F,
+                                        Y')
+                                        }}</b>
+                                </span>
+                            </div>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td colspan="2">To,</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">The Editor/Advertisement Manager:
+                            ..............................................................................................................<br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 30%; vertical-align: top;">
+                            @php
+                            $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
+                            @endphp
+
+                            @foreach($groupedNews as $date => $newsGroup)
+                            <div style="margin-top: 15px">
+                                @foreach($newsGroup as $news)
+                                <div>
+                                    <b><i style="font-size: 12px;">{{ $news->empanelled->news_name }}</i></b>,<br>
+                                </div>
+                                @endforeach
+                                <div class="center-box" style="margin-top: 5px;">
+                                    <div class="inner-box">
+                                        <span style="font-size: 12px;"><b>To be broadcasted positively on <br>{{
+                                                Carbon::parse($date)->format('jS F,
+                                                Y') }}</br></span>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @if(!empty($advertisement->remarks))
+                            <div class="remarks-box">
+                                <div class="remarks-text">
+                                    {{ $advertisement->remarks }}
+                                </div>
+                            </div>
+                            @endif
+                        </td>
+
+                        <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                            <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
+                            (a) The Advertisement should be uploaded/broadcasted by the
+                            <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><b><u>N.B.</u>:-</b></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <ol>
+                                <li>Bills for <b><i><u>Government Departments</u></i></b> should be submitted to
+                                    Directorate
+                                    of
+                                    Information & Public Relations, Meghalaya, Shillong for arrangement of payment.</li>
+                                <li>Bills for <b><i><u>Public Sector Undertakings, Units/Corporations/Autonomous
+                                                Bodies/Other
+                                                Agencies</u></i></b> of the Government may be addressed to
+                                    @if($advertisement->payment_by == "D")
+                                    _____________________________________________
+                                    @else
+                                    the <b><i>{{$advertisement->department->dept_name}}</i></b>
+                                    @endif
+                                    for payment
+                                    and should be routed through DIPR for verification of the rate of advertisement as
+                                    approved
+                                    by
+                                    the Government from time to time.</li>
+                            </ol>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td></td>
+                        <td colspan="2" style="text-align: right;">
+                            <div style="display: inline-block; text-align: center;">
+                                <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Copy to the:-</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <ol>
+                                <li>{{$advertisement->department->dept_name}} for information and necessary action.
+                                    This has a reference to letter No.
+                                    <b><i>{{ $advertisement->ref_no }} Dated {{
+                                            \Carbon\Carbon::parse($advertisement->ref_date)->format('d.m.Y') }}</i></b>
+                                </li>
+                                <li>Advertisement section, for information and necessary action.</li>
+                            </ol>
+                        </td>
+                    </tr><br>
+                    <tr>
+                        <td class="border-box">
+                            <div class="bordered-text">
+                                {{ $advertisement->department->dept_name}}
+                            </div>
+                        </td>
+                        <td colspan="2" style="text-align: right;">
+                            <div style="display: inline-block; text-align: center;">
+                                <i>for</i> Director of Information and Public Relations,<br>Meghalaya, Shillong.
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                </body>
+                @endfor
+                {{-- End of Office & Dept Copy --}}
+                @endif
+                {{-- End of check for advertisement type --}}
+                @endif
+                {{-- End of check if the advertisement is a message --}}
 
 </html>

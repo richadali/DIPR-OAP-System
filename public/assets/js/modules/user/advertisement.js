@@ -1,4 +1,17 @@
 $(document).ready(function () {
+    tinymce.init({
+        selector: "#message_body",
+        menubar: false,
+        plugins: ["preview", "code", "wordcount"],
+        toolbar: [
+            "undo redo | bold italic underline strikethrough | fontselect fontsizeselect | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist",
+        ],
+        toolbar_sticky: true,
+        branding: false,
+        quickbars_selection_toolbar:
+            "bold italic | blockquote | alignleft aligncenter alignright alignjustify",
+    });
+
     $(".select2").select2();
 
     $(document).on("click", "#users-tab", function (e) {
@@ -523,6 +536,7 @@ $(document).ready(function () {
     function initializeAdvertisementFormLogic() {
         const typeSelect = $("#advertisementType");
         const categorySelect = $("#category");
+        const subjectSelect = $("#subject");
 
         typeSelect.on("change", function () {
             if (typeSelect.val() === "7") {
@@ -563,6 +577,14 @@ $(document).ready(function () {
             } else {
                 $("#pageInfoContainer").hide();
                 $("#page_info").prop("readOnly", true).prop("disabled", true);
+            }
+        });
+
+        subjectSelect.on("change", function () {
+            if (subjectSelect.val() === "11") {
+                $("#messageContainer").show();
+            } else {
+                $("#messageContainer").hide();
             }
         });
 

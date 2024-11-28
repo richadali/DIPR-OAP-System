@@ -22,6 +22,9 @@ class StoreAdRequest extends FormRequest
             'payment_by' => 'required|alpha|size:1',
             'mipr_no' => 'required|string|max:255',
             'newspaper' => 'nullable|json',
+            'message_subject' => 'nullable|string|max:255',
+            'message_body' => 'nullable|string',
+            'message_copy_to' => 'nullable|string',
         ];
     }
 
