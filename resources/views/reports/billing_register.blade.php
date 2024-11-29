@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
     <title>PDF View</title>
     <style>
         @page {
@@ -23,6 +24,7 @@
             padding: 8px;
             border: 1px solid #000;
             word-wrap: break-word;
+            font-size: 9pt;
         }
 
         .long-text {
@@ -34,52 +36,50 @@
             white-space: pre-wrap;
         }
 
-        h1 {
+        h3 {
             text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <h1>Billing Register</h1>
+    <h3>Billing Register</h3>
     <table>
         <thead>
             <tr>
-                <th width="2%">Sl. No</th>
-                <th width="20%">Branch of the Department </th>
-                <th width="10%">Organizations issued</th>
-                <th width="6%">Release Order No</th>
-                <th width="10%">Release Order Date</th>
-                <th width="9%">Bill No</th>
-                <th width="8%">Bill Date</th>
-                <th width="5%">Size/Seconds</th>
-                <th width="6%">Amount</th>
+                <th width="5%">Slno.</th>
+                <th width="9%">Entering Date</th>
+                <th width="21%">Branch of Department</th>
+                <th width="14%">Organizations issued</th>
+                <th width="8%">MIPR No</th>
+                <th width="9%">MIPR Date</th>
+                <th width="12%">Bill No</th>
+                <th width="9%">Bill Date</th>
+                <th width="5%">Size/Sec</th>
+                <th width="8%">Amount</th>
             </tr>
         </thead>
         <tbody>
             @foreach($bills as $key => $bill)
             <tr>
-                <td align=center> {{ ++$key }}</td>
-                <td align=center> {{ $bill->dept_name }}</td>
+                <td align="center"> {{ ++$key }}</td>
+                <td align="center"> {{ $bill->created_at->format('d-m-Y')}}</td>
+                <td> {{ $bill->dept_name }}</td>
                 <td>{{ $bill->news_name }} </td>
-                <td align=center> {{ $bill->release_order_no }}</td>
-                <td align=center> {{ $bill->release_order_date->format('d-m-Y') }}</td>
-                <td align=center> {{ $bill->bill_no }}</td>
-                <td align=center> {{ $bill->bill_date->format('d-m-Y') }}</td>
-                <td align="center">
-                    @if(!empty($bill->cm) && !empty($bill->columns))
-                    {{ $bill->cm }}x{{ $bill->columns }}
-                    @elseif(!empty($bill->seconds))
-                    {{ $bill->seconds }}s
-                    @else
-                    &nbsp;
-                    @endif
-                </td>
-                <td align=right> {{ $bill->amount }}</td>
-
+                <td align="center"> {{ $bill->mipr_no }}</td>
+                <td align="center"> {{ $bill->issue_date->format('d-m-Y')}}</td>
+                <td align="center"> {{ $bill->bill_no }}</td>
+                <td align="center"> {{ $bill->bill_date->format('d-m-Y')}}</td>
+                <td align="center">{!! $bill->sizes !!}</td>
+                <td align="right"> {{ $bill->total_amount }}</td>
             </tr>
             @endforeach
+            <tr>
+                <td colspan="9" align="right"><strong>Total:</strong></td>
+                <td align="right"><strong>{{ number_format($grandTotalAmount, 2) }}</strong></td>
+            </tr>
         </tbody>
+
     </table>
 </body>
 

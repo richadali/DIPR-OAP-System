@@ -187,13 +187,10 @@ class ReportsController extends Controller
         $departmentId = $request->department;
         $newspaperId = $request->newspaper;
 
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
+        // Fetch distinct rows for newspapers and advertisements
+        $bills = Bill::select('b.created_at', 'b.ad_id', 'b.empanelled_id', 'b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', \DB::raw('CAST(b.total_amount AS NUMERIC(15,2)) AS total_amount'), 'a.payment_by', 'a.mipr_no', 'a.issue_date')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
-            ->join('assigned_news as an', function ($join) {
-                $join->on('an.advertisement_id', '=', 'a.id');
-                $join->on('an.empanelled_id', '=', 'b.empanelled_id');
-            })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
             ->when($from && $to, function ($query) use ($from, $to) {
@@ -207,63 +204,112 @@ class ReportsController extends Controller
             })
             ->where('a.payment_by', 'D')
             ->orderBy('b.bill_date')
+            ->distinct()
             ->get();
 
+        // Group sizes for each bill entry
         foreach ($bills as $bill) {
+            $bill->created_at = \Carbon\Carbon::parse($bill->created_at);
+            $bill->issue_date = \Carbon\Carbon::parse($bill->issue_date);
             $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
-            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date);
-            $bill->amount = number_format($bill->amount, 2);
+            $bill->total_amount = number_format($bill->total_amount, 2);
+
+            // Fetch and group sizes for the current bill
+            $sizes = \DB::table('assigned_news as an')
+                ->select('an.columns', 'an.cm', 'an.seconds')
+                ->where('an.advertisement_id', $bill->ad_id)
+                ->where('an.empanelled_id', $bill->empanelled_id)
+                ->get()
+                ->map(function ($size) {
+                    if (!empty($size->cm) && !empty($size->columns)) {
+                        return $size->cm . 'x' . $size->columns;
+                    } elseif (!empty($size->seconds)) {
+                        return $size->seconds . ' seconds';
+                    }
+                    return null;
+                })
+                ->filter()
+                ->implode('<br>');
+
+
+            $bill->sizes = $sizes;
         }
 
-        $pdf = PDF::loadView('reports.billing_register', compact('bills'));
+        $grandTotalAmount = $bills->sum(function ($bill) {
+            return (float) str_replace(',', '', $bill->total_amount);
+        });
+
+        // Load the PDF view
+        $pdf = PDF::loadView('reports.billing_register', compact('bills', 'grandTotalAmount'));
 
         return $pdf->stream('billing_register.pdf', array('Attachment' => 0));
     }
 
 
-    public function exportBillingRegisterToExcel()
+
+    public function exportBillingRegisterToExcel(Request $request)
     {
-        $from = request()->input('from');
-        $to = request()->input('to');
-        $departmentId = request()->input('department');
-        $newspaperId = request()->input('newspaper');
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
+        $from = $request->from;
+        $to = $request->to;
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
+
+        // Fetch distinct rows for newspapers and advertisements
+        $bills = Bill::select('b.created_at', 'b.ad_id', 'b.empanelled_id', 'b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', \DB::raw('CAST(b.total_amount AS NUMERIC(15,2)) AS total_amount'), 'a.payment_by', 'a.mipr_no', 'a.issue_date')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
-            ->join('assigned_news as an', function ($join) {
-                $join->on('an.advertisement_id', '=', 'a.id');
-                $join->on('an.empanelled_id', '=', 'b.empanelled_id');
-            })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
             ->when($from && $to, function ($query) use ($from, $to) {
                 $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
             })
-            ->when($departmentId, function ($query) use ($departmentId) {
-                $query->where('a.department_id', $departmentId);
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('a.department_id', $departmentId);
             })
-            ->when($newspaperId, function ($query) use ($newspaperId) {
-                $query->where('b.empanelled_id', $newspaperId);
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('b.empanelled_id', $newspaperId);
             })
             ->where('a.payment_by', 'D')
             ->orderBy('b.bill_date')
+            ->distinct()
             ->get();
 
+        // Group sizes for each bill entry
         foreach ($bills as $bill) {
-            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date)->format('d-m-Y');
-            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date)->format('d-m-Y');
-            $bill->amount = number_format($bill->amount, 2);
+            $bill->created_at = \Carbon\Carbon::parse($bill->created_at);
+            $bill->issue_date = \Carbon\Carbon::parse($bill->issue_date);
+            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
+            $bill->total_amount = number_format($bill->total_amount, 2);
 
-            if (!empty($bill->cm) && !empty($bill->columns)) {
-                $bill->size_seconds = $bill->cm . 'x' . $bill->columns;
-            } elseif (!empty($bill->seconds)) {
-                $bill->size_seconds = $bill->seconds . 's';
-            } else {
-                $bill->size_seconds = '';
-            }
+            // Fetch and group sizes for the current bill
+            $sizes = \DB::table('assigned_news as an')
+                ->select('an.columns', 'an.cm', 'an.seconds')
+                ->where('an.advertisement_id', $bill->ad_id)
+                ->where('an.empanelled_id', $bill->empanelled_id)
+                ->get()
+                ->map(function ($size) {
+                    if (!empty($size->cm) && !empty($size->columns)) {
+                        return $size->cm . 'x' . $size->columns;
+                    } elseif (!empty($size->seconds)) {
+                        return $size->seconds;
+                    }
+                    return null;
+                })
+                ->filter()
+                ->implode(', ');
+
+            $bill->sizes = $sizes;
         }
-        return Excel::download(new BillingRegisterExport($bills), 'billing_register.xlsx');
+
+        // Calculate grand total
+        $grandTotalAmount = $bills->sum(function ($bill) {
+            return (float) str_replace(',', '', $bill->total_amount);
+        });
+
+        // Pass data to Excel export
+        return Excel::download(new BillingRegisterExport($bills, $grandTotalAmount), 'billing_register.xlsx');
     }
+
 
 
     public function ViewBillingRegister()
@@ -332,13 +378,9 @@ class ReportsController extends Controller
         $departmentId = $request->department;
         $newspaperId = $request->newspaper;
 
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
+        $bills = Bill::select('b.created_at', 'b.ad_id', 'b.empanelled_id', 'b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', \DB::raw('CAST(b.total_amount AS NUMERIC(15,2)) AS total_amount'), 'a.payment_by', 'a.mipr_no', 'a.issue_date')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
-            ->join('assigned_news as an', function ($join) {
-                $join->on('an.advertisement_id', '=', 'a.id');
-                $join->on('an.empanelled_id', '=', 'b.empanelled_id');
-            })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
             ->when($from && $to, function ($query) use ($from, $to) {
@@ -352,61 +394,108 @@ class ReportsController extends Controller
             })
             ->where('a.payment_by', 'C')
             ->orderBy('b.bill_date')
+            ->distinct()
             ->get();
 
+        // Group sizes for each bill entry
         foreach ($bills as $bill) {
+            $bill->created_at = \Carbon\Carbon::parse($bill->created_at);
+            $bill->issue_date = \Carbon\Carbon::parse($bill->issue_date);
             $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
-            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date);
-            $bill->amount = number_format($bill->amount, 2);
+            $bill->total_amount = number_format($bill->total_amount, 2);
+
+            // Fetch and group sizes for the current bill
+            $sizes = \DB::table('assigned_news as an')
+                ->select('an.columns', 'an.cm', 'an.seconds')
+                ->where('an.advertisement_id', $bill->ad_id)
+                ->where('an.empanelled_id', $bill->empanelled_id)
+                ->get()
+                ->map(function ($size) {
+                    if (!empty($size->cm) && !empty($size->columns)) {
+                        return $size->cm . 'x' . $size->columns;
+                    } elseif (!empty($size->seconds)) {
+                        return $size->seconds . ' seconds';
+                    }
+                    return null;
+                })
+                ->filter()
+                ->implode('<br>');
+
+
+            $bill->sizes = $sizes;
         }
 
-        $pdf = PDF::loadView('reports.non_DIPR_register', compact('bills'));
+        $grandTotalAmount = $bills->sum(function ($bill) {
+            return (float) str_replace(',', '', $bill->total_amount);
+        });
+
+        // Load the PDF view
+        $pdf = PDF::loadView('reports.non_DIPR_register', compact('bills', 'grandTotalAmount'));
 
         return $pdf->stream('non_DIPR_register.pdf', array('Attachment' => 0));
     }
 
-    public function exportNonDIPRRegisterToExcel()
+    public function exportNonDIPRRegisterToExcel(Request $request)
     {
-        $from = request()->input('from');
-        $to = request()->input('to');
-        $departmentId = request()->input('department');
-        $newspaperId = request()->input('newspaper');
-        $bills = Bill::select('b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', 'a.amount', 'a.payment_by', 'a.columns', 'a.cm', 'a.seconds')
+        $from = $request->from;
+        $to = $request->to;
+        $departmentId = $request->department;
+        $newspaperId = $request->newspaper;
+
+        // Fetch distinct rows for newspapers and advertisements
+        $bills = Bill::select('b.created_at', 'b.ad_id', 'b.empanelled_id', 'b.id', 'd.dept_name', 'e.news_name', 'a.release_order_no', 'a.release_order_date', 'b.bill_no', 'b.bill_date', \DB::raw('CAST(b.total_amount AS NUMERIC(15,2)) AS total_amount'), 'a.payment_by', 'a.mipr_no', 'a.issue_date')
             ->from('bills as b')
             ->join('advertisement as a', 'a.id', '=', 'b.ad_id')
-            ->join('assigned_news as an', function ($join) {
-                $join->on('an.advertisement_id', '=', 'a.id');
-                $join->on('an.empanelled_id', '=', 'b.empanelled_id');
-            })
             ->join('empanelled as e', 'e.id', '=', 'b.empanelled_id')
             ->join('department as d', 'd.id', '=', 'a.department_id')
             ->when($from && $to, function ($query) use ($from, $to) {
                 $query->whereBetween('b.bill_date', [\Carbon\Carbon::parse($from), \Carbon\Carbon::parse($to)]);
             })
-            ->when($departmentId, function ($query) use ($departmentId) {
-                $query->where('a.department_id', $departmentId);
+            ->when($departmentId, function ($query, $departmentId) {
+                return $query->where('a.department_id', $departmentId);
             })
-            ->when($newspaperId, function ($query) use ($newspaperId) {
-                $query->where('b.empanelled_id', $newspaperId);
+            ->when($newspaperId, function ($query, $newspaperId) {
+                return $query->where('b.empanelled_id', $newspaperId);
             })
             ->where('a.payment_by', 'C')
             ->orderBy('b.bill_date')
+            ->distinct()
             ->get();
 
+        // Group sizes for each bill entry
         foreach ($bills as $bill) {
-            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date)->format('d-m-Y');
-            $bill->release_order_date = \Carbon\Carbon::parse($bill->release_order_date)->format('d-m-Y');
-            $bill->amount = number_format($bill->amount, 2);
+            $bill->created_at = \Carbon\Carbon::parse($bill->created_at);
+            $bill->issue_date = \Carbon\Carbon::parse($bill->issue_date);
+            $bill->bill_date = \Carbon\Carbon::parse($bill->bill_date);
+            $bill->total_amount = number_format($bill->total_amount, 2);
 
-            if (!empty($bill->cm) && !empty($bill->columns)) {
-                $bill->size_seconds = $bill->cm . 'x' . $bill->columns;
-            } elseif (!empty($bill->seconds)) {
-                $bill->size_seconds = $bill->seconds . 's';
-            } else {
-                $bill->size_seconds = '';
-            }
+            // Fetch and group sizes for the current bill
+            $sizes = \DB::table('assigned_news as an')
+                ->select('an.columns', 'an.cm', 'an.seconds')
+                ->where('an.advertisement_id', $bill->ad_id)
+                ->where('an.empanelled_id', $bill->empanelled_id)
+                ->get()
+                ->map(function ($size) {
+                    if (!empty($size->cm) && !empty($size->columns)) {
+                        return $size->cm . 'x' . $size->columns;
+                    } elseif (!empty($size->seconds)) {
+                        return $size->seconds;
+                    }
+                    return null;
+                })
+                ->filter()
+                ->implode(', ');
+
+            $bill->sizes = $sizes;
         }
-        return Excel::download(new NonDIPRBillingRegisterExport($bills), 'non_DIPR_billing_register.xlsx');
+
+        // Calculate grand total
+        $grandTotalAmount = $bills->sum(function ($bill) {
+            return (float) str_replace(',', '', $bill->total_amount);
+        });
+
+        // Pass data to Excel export
+        return Excel::download(new NonDIPRBillingRegisterExport($bills, $grandTotalAmount), 'non_DIPR_register.xlsx');
     }
 
     public function ViewNonDIPRRegister()
@@ -563,13 +652,13 @@ class ReportsController extends Controller
         $bill->advertisement->ref_date = Carbon::parse($bill->advertisement->ref_date);
         $bill->bill_date = Carbon::parse($bill->bill_date);
 
-        $totalAmountWithGST = $bill->advertisement->amount * (1 + $bill->gst_rate / 100);
-        $words = $this->NumberToWords((int)$totalAmountWithGST);
+        $totalAmount = $bill->total_amount;
 
+        $words = $this->NumberToWords($totalAmount);
 
         $miprFileNo = MiprFileNo::latest()->first();
 
-        $pdf = PDF::loadView('reports.forwarding_letter', compact('bill', 'words', 'miprFileNo', 'newspaperName', 'totalAmountWithGST'));
+        $pdf = PDF::loadView('reports.forwarding_letter', compact('bill', 'words', 'miprFileNo', 'newspaperName', 'totalAmount'));
         $pdfFileName = 'Forwarding_Letter' . $bill->id . '.pdf';
 
         return $pdf->stream($pdfFileName, [
@@ -588,14 +677,15 @@ class ReportsController extends Controller
 
     public function NumberToWords($x)
     {
-
         $negative = 'negative ';
         $string = $fraction = null;
 
-        if (strpos($x, '.') !== false) {
+        // Ensure $x is treated as a float
+        $x = (float)$x;
 
-            list($x, $fraction) = explode('.', $x);
-        }
+        // Extract integer and fractional parts
+        $integerPart = floor($x);
+        $fractionPart = $x - $integerPart;
 
         $nwords = array(
             "Zero",
@@ -628,195 +718,51 @@ class ReportsController extends Controller
             90 => "Ninety"
         );
 
-        if (!is_numeric($x)) {
-            $w = '#';
-        } else if (fmod($x, 1) != 0) {
-            $w = '#';
-        } else {
+        if ($x < 0) {
+            return $negative . $this->NumberToWords(abs($x));
+        }
 
-            if ($x < 0) {
-                return $negative . app("App\Http\Controllers\Commonfunc")->NumberToWords(abs($x));
-            } else {
-                $w = '';
+        // Convert integer part
+        if ($integerPart < 21) {
+            $string = $nwords[$integerPart];
+        } elseif ($integerPart < 100) {
+            $string = $nwords[10 * floor($integerPart / 10)];
+            $remainder = $integerPart % 10;
+            if ($remainder > 0) {
+                $string .= '-' . $nwords[$remainder];
             }
-
-            if ($x < 21) {
-
-                $w .= $nwords[$x];
-            } else if ($x < 100) {
-                $w .= $nwords[10 * floor($x / 10)];
-                $r = fmod($x, 10);
-                if ($r > 0) {
-                    $w .= '-' . $nwords[$r];
-                }
-            } else if ($x < 1000) {
-                $w .= $nwords[floor($x / 100)] . ' Hundred';
-                $r = fmod($x, 100);
-                if ($r > 0) {
-                    $w .= ' and ' . $this->NumberToWords($r);
-                }
-            } else if ($x < 100000) {
-
-                $w .= $this->NumberToWords(floor($x / 1000)) . " Thousand";
-
-                $r = fmod($x, 1000);
-                if ($r > 0) {
-                    $w .= ' ';
-                    if ($r < 100) {
-                        $w .= 'and ';
-                    }
-                    $w .= $this->NumberToWords($r);
-                }
-            } else if ($x < 10000000) {
-
-                if (floor($x / 100000) == 1) {
-                    $w .= $this->NumberToWords(floor($x / 100000)) . ' Lakh';
-                } else {
-                    $w .= $this->NumberToWords(floor($x / 100000)) . ' Lakhs';
-                }
-
-                $r = fmod($x, 100000);
-                if ($r > 0) {
-                    $w .= ' ';
-                    if ($r < 100) {
-                        $w .= 'and ';
-                    }
-                    $w .= $this->NumberToWords($r);
-                }
-            } else {
-                $w .= $this->NumberToWords(floor($x / 10000000)) . ' Crore(s)';
-                $r = fmod($x, 10000000);
-                if ($r > 0) {
-                    $w .= ' ';
-                    if ($r < 100) {
-                        $w .= 'and ';
-                    }
-                    $w .= $this->NumberToWords($r);
-                }
+        } elseif ($integerPart < 1000) {
+            $string = $nwords[floor($integerPart / 100)] . ' Hundred';
+            $remainder = $integerPart % 100;
+            if ($remainder > 0) {
+                $string .= ' and ' . $this->NumberToWords($remainder);
+            }
+        } elseif ($integerPart < 100000) {
+            $string = $this->NumberToWords(floor($integerPart / 1000)) . " Thousand";
+            $remainder = $integerPart % 1000;
+            if ($remainder > 0) {
+                $string .= ' ' . $this->NumberToWords($remainder);
+            }
+        } elseif ($integerPart < 10000000) {
+            $string = $this->NumberToWords(floor($integerPart / 100000)) . ' Lakh';
+            $remainder = $integerPart % 100000;
+            if ($remainder > 0) {
+                $string .= ' ' . $this->NumberToWords($remainder);
+            }
+        } else {
+            $string = $this->NumberToWords(floor($integerPart / 10000000)) . ' Crore';
+            $remainder = $integerPart % 10000000;
+            if ($remainder > 0) {
+                $string .= ' ' . $this->NumberToWords($remainder);
             }
         }
 
-        $decones = array(
-            '01' => "One",
-            '02' => "Two",
-            '03' => "Three",
-            '04' => "Four",
-            '05' => "Five",
-            '06' => "Six",
-            '07' => "Seven",
-            '08' => "Eight",
-            '09' => "Nine",
-            10 => "Ten",
-            11 => "Eleven",
-            12 => "Twelve",
-            13 => "Thirteen",
-            14 => "Fourteen",
-            15 => "Fifteen",
-            16 => "Sixteen",
-            17 => "Seventeen",
-            18 => "Eighteen",
-            19 => "Nineteen",
-        );
-        $ones = array(
-            0 => " ",
-            1 => "One",
-            2 => "Two",
-            3 => "Three",
-            4 => "Four",
-            5 => "Five",
-            6 => "Six",
-            7 => "Seven",
-            8 => "Eight",
-            9 => "Nine",
-            10 => "Ten",
-            11 => "Eleven",
-            12 => "Twelve",
-            13 => "Thirteen",
-            14 => "Fourteen",
-            15 => "Fifteen",
-            16 => "Sixteen",
-            17 => "Seventeen",
-            18 => "Eighteen",
-            19 => "Nineteen",
-        );
-        $tens = array(
-            0 => "",
-            2 => "Twenty",
-            3 => "Thirty",
-            4 => "Forty",
-            5 => "Fifty",
-            6 => "Sixty",
-            7 => "Seventy",
-            8 => "Eighty",
-            9 => "Ninety",
-        );
-        $hundreds = array(
-            "Hundred",
-            "Thousand",
-            "Million",
-            "Billion",
-            "Trillion",
-            "Quadrillion",
-        );
-        $dictionary = array(
-            0 => 'Zero',
-            1 => 'One',
-            2 => 'Two',
-            3 => 'Three',
-            4 => 'Four',
-            5 => 'Five',
-            6 => 'Six',
-            7 => 'Seven',
-            8 => 'Eight',
-            9 => 'Nine',
-            10 => 'Ten',
-            11 => 'Eleven',
-            12 => 'Twelve',
-            13 => 'Thirteen',
-            14 => 'Fourteen',
-            15 => 'Fifteen',
-            16 => 'Sixteen',
-            17 => 'Seventeen',
-            18 => 'Eighteen',
-            19 => 'Nineteen',
-            20 => 'Twenty',
-            30 => 'Thirty',
-            40 => 'Fourty',
-            50 => 'Fifty',
-            60 => 'Sixty',
-            70 => 'Seventy',
-            80 => 'Eighty',
-            90 => 'Ninety',
-            100 => 'Hundred',
-            1000 => 'Thousand',
-            1000000 => 'Million',
-            1000000000 => 'Billion',
-            1000000000000 => 'Trillion',
-            1000000000000000 => 'Quadrillion',
-            1000000000000000000 => 'Quintillion',
-        );
-
-        if ($fraction > 0) {
-
-            $string = " and ";
-
-            if ($fraction < 20) {
-
-                $string .= $decones[$fraction];
-            } elseif ($fraction < 100) {
-
-                $string .= $tens[substr($fraction, 0, 1)];
-
-                $string .= " " . $ones[substr($fraction, 1, 1)];
-            }
-
-            $string = $string . " paise";
-        } else {
-            $string = ' ';
+        // Process fractional part
+        if ($fractionPart > 0) {
+            $fractionValue = round($fractionPart * 100); // Convert to whole number (e.g., 0.75 -> 75)
+            $string .= ' and ' . $this->NumberToWords($fractionValue) . ' Paise';
         }
 
-        $w = $w . '' . $string;
-
-        return $w;
+        return $string;
     }
 }

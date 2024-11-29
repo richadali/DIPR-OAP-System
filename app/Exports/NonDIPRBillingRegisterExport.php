@@ -14,16 +14,31 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 class NonDIPRBillingRegisterExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithCustomStartCell
 {
     protected $bills;
+    protected $grandTotalAmount;
     protected $rowCount;
 
-    public function __construct($bills)
+    public function __construct($bills, $grandTotalAmount)
     {
         $this->bills = $bills;
+        $this->grandTotalAmount = $grandTotalAmount;
         $this->rowCount = 0;
     }
 
     public function collection()
     {
+        // Add the Grand Total row, but exclude "Slno" and "Department" for the Grand Total
+        $this->bills->push((object) [
+            'created_at' => '',
+            'dept_name' => '',
+            'news_name' => '',
+            'mipr_no' => '',
+            'mipr_date' => '',
+            'bill_no' => '',
+            'bill_date' => '',
+            'sizes' => '',
+            'total_amount' => '₹ ' . number_format($this->grandTotalAmount, 2) // Add ₹ symbol and formatted amount
+        ]);
+
         return $this->bills;
     }
 
@@ -31,13 +46,14 @@ class NonDIPRBillingRegisterExport implements FromCollection, WithHeadings, With
     {
         return [
             'Sl. No',
-            'Branch of the Department',
-            'Organizations issued',
-            'Release Order No',
-            'Release Order Date',
+            'Entering Date',
+            'Branch of Department',
+            'Organizations Issued',
+            'MIPR No',
+            'MIPR Date',
             'Bill No',
             'Bill Date',
-            'Size/Seconds',
+            'Size/Sec',
             'Amount',
         ];
     }
@@ -46,30 +62,47 @@ class NonDIPRBillingRegisterExport implements FromCollection, WithHeadings, With
     {
         $this->rowCount++; // Increment row count for each bill
 
+        // If this is the last row (Grand Total), exclude the serial number
+        if ($this->rowCount == $this->bills->count()) {
+            return [
+                '',  // Empty serial number for the Grand Total row
+                '',  // Empty entering date for the Grand Total row
+                '',  // Empty department for the Grand Total row
+                '',  // Empty organization for the Grand Total row
+                '',  // Empty MIPR No for the Grand Total row
+                '',  // Empty MIPR Date for the Grand Total row
+                '',  // Empty Bill No for the Grand Total row
+                '',  // Empty Bill Date for the Grand Total row
+                '',  // Empty Size/Sec for the Grand Total row
+                '₹ ' . number_format($this->grandTotalAmount, 2),  // Grand Total amount
+            ];
+        }
+
+        // Return values for normal rows
         return [
-            $this->rowCount, // Use the row count for Sl. No
+            $this->rowCount,
+            !empty($bill->created_at) ? $bill->created_at->format('d-m-Y') : '',
             $bill->dept_name,
             $bill->news_name,
-            $bill->release_order_no,
-            !empty($bill->release_order_date) ? \Carbon\Carbon::parse($bill->release_order_date)->format('d-m-Y') : '',
+            $bill->mipr_no,
+            !empty($bill->issue_date) ? $bill->issue_date->format('d-m-Y') : '',
             $bill->bill_no,
-            !empty($bill->bill_date) ? \Carbon\Carbon::parse($bill->bill_date)->format('d-m-Y') : '',
-            !empty($bill->cm) && !empty($bill->columns) ? $bill->cm . 'x' . $bill->columns : ($bill->seconds ? $bill->seconds . 's' : ''),
-            $bill->amount,
+            !empty($bill->bill_date) ? $bill->bill_date->format('d-m-Y') : '',
+            !empty($bill->sizes) ? $bill->sizes : '',
+            $bill->total_amount,
         ];
     }
 
+
     public function styles(Worksheet $sheet)
     {
-        // Add title in A1 and merge cells for title row
+        // Title and styles
         $sheet->setCellValue('A1', 'Bills not paid by DIPR');
-        $sheet->mergeCells('A1:I1');
-
-        // Style the title
+        $sheet->mergeCells('A1:J1');
         $sheet->getStyle('A1')->applyFromArray([
             'font' => [
                 'bold' => true,
-                'size' => 14,
+                'size' => 12,
                 'color' => ['argb' => Color::COLOR_BLACK],
             ],
             'alignment' => [
@@ -79,19 +112,64 @@ class NonDIPRBillingRegisterExport implements FromCollection, WithHeadings, With
         ]);
 
         // Style the headings in A3
-        $sheet->getStyle('A3:I3')->getFont()->setBold(true)->setSize(12);
-        $sheet->getStyle('A3:I3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A3:J3')->getFont()->setBold(true)->setSize(11);
+        $sheet->getStyle('A3:J3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Wrap text for the headers
+        $sheet->getStyle('A3:J3')->getAlignment()->setWrapText(true);
 
         // Set column widths
-        $sheet->getColumnDimension('A')->setWidth(10);
-        $sheet->getColumnDimension('B')->setWidth(30);
-        $sheet->getColumnDimension('C')->setWidth(30);
-        $sheet->getColumnDimension('D')->setWidth(20);
-        $sheet->getColumnDimension('E')->setWidth(20);
-        $sheet->getColumnDimension('F')->setWidth(15);
-        $sheet->getColumnDimension('G')->setWidth(15);
-        $sheet->getColumnDimension('H')->setWidth(15);
-        $sheet->getColumnDimension('I')->setWidth(15);
+        $sheet->getColumnDimension('A')->setWidth(8);
+        $sheet->getColumnDimension('B')->setWidth(14);
+        $sheet->getColumnDimension('C')->setWidth(60);
+        $sheet->getColumnDimension('D')->setWidth(25);
+        $sheet->getColumnDimension('E')->setWidth(15);
+        $sheet->getColumnDimension('F')->setWidth(13);
+        $sheet->getColumnDimension('G')->setWidth(20);
+        $sheet->getColumnDimension('H')->setWidth(13);
+        $sheet->getColumnDimension('I')->setWidth(10);
+        $sheet->getColumnDimension('J')->setWidth(15);
+
+        // Apply center alignment and wrap text to all columns (except for the Amount column)
+        $sheet->getStyle('A4:I' . ($this->rowCount + 3))
+            ->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+
+        // Left-align the "Branch of Department" column (column C)
+        $sheet->getStyle('C4:C' . ($this->rowCount + 3)) // From row 4 (after heading) to the last row
+            ->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+        // Right align the "Amount" column (column J)
+        $sheet->getStyle('J4:J' . ($this->rowCount + 3)) // From row 4 (after heading) to the last row
+            ->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        // Format the amount in INR format (with commas and 2 decimal places)
+        $sheet->getStyle('J4:J' . ($this->rowCount + 3))
+            ->getNumberFormat()
+            ->setFormatCode('#,##0.00'); // Add commas and decimal precision
+
+        // Style for Grand Total row (exclude serial number and department)
+        $lastRow = $this->rowCount + 3; // 3 for the title and headings
+        $sheet->getStyle("A{$lastRow}:J{$lastRow}")->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 11,
+                'color' => ['argb' => Color::COLOR_BLACK],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_RIGHT,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+
+        // Wrap text for the Grand Total row
+        $sheet->getStyle("A{$lastRow}:J{$lastRow}")
+            ->getAlignment()
+            ->setWrapText(true);
 
         return [];
     }

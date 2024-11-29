@@ -13,6 +13,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+
 Auth::routes();
 
 Route::get('/password-reset', [PasswordResetContoller::class, 'index'])
@@ -447,142 +448,137 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-advertisement-publish-status', [AdvertisementController::class, 'updateAdvertisementStatus']);
 
     Route::get('/advertisement/{id}', [AdvertisementController::class, 'getAdvertisementDetails']);
+
+    Route::post('getAmount', [AdvertisementController::class, 'getAmount'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('getAmount');
+
+
+    // BILLS 
+    Route::get('bills', [BillsController::class, 'index'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('bills');
+
+    Route::post('bill-view-data', [BillsController::class, 'ViewContent'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('bills-view-data');
+
+    Route::post('/bill-get-dept-letter-no', [BillsController::class, 'getDeptLetterNo']);
+
+    Route::post('/bill-get-newspaper', [BillsController::class, 'getNewspaper'])
+        ->name('getNewspaper');
+
+    Route::post('/get_bill_details', [BillsController::class, 'getBillDetails'])
+        ->name('getBillDetails');
+
+    Route::post('/bill-store-data', [BillsController::class, 'StoreData'])
+        ->name('/bill/add');
+
+    Route::post('/bill-edit-data', [BillsController::class, 'ShowData'])
+        ->name('editBill');
+
+    Route::post('/bill-delete-data', [BillsController::class, 'DeleteData'])
+        ->name('deleteBill');
+
+    Route::post('/bill-get-amount', [BillsController::class, 'getAmount']);
+
+    // REPORT ROUTES
+
+    Route::get('/reports/release_order/{id}', [ReportsController::class, 'releaseOrder'])
+        ->name('/reports/release_order');
+
+    //issue register
+    Route::get('/reports/issue-register', [ReportsController::class, 'indexIssueRegister'])
+        ->name('/reports/issue-register');
+
+    Route::post('issue_register-view-data', [ReportsController::class, 'ViewIssueRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('issue_register-view-data');
+
+    Route::post('get_issue_register', [ReportsController::class, 'GetIssueRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('get_issue_register');
+
+    Route::get('/reports/print_issue_register/{from}/{to}', [ReportsController::class, 'printIssueRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('/reports/print_issue_register');
+
+    Route::get('/reports/export_issue_register/{from}/{to}', [ReportsController::class, 'exportIssueRegisterToExcel'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('reports.export_issue_register');
+
+
+    //BILLING register
+    Route::get('/reports/billing-register', [ReportsController::class, 'indexBillingRegister'])
+        ->name('/reports/billing-register');
+
+    Route::post('billing_register-view-data', [ReportsController::class, 'ViewBillingRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('billing_register-view-data');
+
+    Route::post('get_billing_register', [ReportsController::class, 'GetBillingRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('get_billing_register');
+
+    Route::get('/reports/print_billing_register/{from}/{to}', [ReportsController::class, 'printBillingRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('/reports/print_billing_register');
+
+    Route::get('/reports/export_billing_register', [ReportsController::class, 'exportBillingRegisterToExcel'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('reports.export_billing_register');
+
+
+    //BILLS not_paid_by_dipr
+
+    Route::get('reports/not_paid_by_dipr', [ReportsController::class, 'indexNonDIPRRegister'])
+        ->name('reports/not_paid_by_dipr');
+
+    Route::post('nonDIPR_register-view-data', [ReportsController::class, 'ViewNonDIPRRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('nonDIPR_register-view-data');
+
+    Route::post('get_nonDIPR_register', [ReportsController::class, 'GetNonDIPRRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('get_nonDIPR_register');
+
+    Route::get('/reports/print_nonDIPR_register/{from}/{to}', [ReportsController::class, 'printNonDIPRRegister'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('/reports/print_nonDIPR_register');
+
+    Route::get('/reports/export_nonDIPR_register', [ReportsController::class, 'exportNonDIPRRegisterToExcel'])
+        ->middleware('cache.headers')
+        ->middleware('throttle')
+        ->name('reports.export_nonDIPR_register');
+
+    //Forwarding Letter
+
+    Route::get('/reports/forwarding_letter/{id}', [ReportsController::class, 'forwardingLetter'])
+        ->name('/reports/forwarding_letter');
+
+    Route::get('/reports/detailed-expenditure-report', [ReportsController::class, 'detailedExpenditureReport'])
+        ->name('/reports/detailed-expenditure-report');
+
+    Route::get('/reports/bills-not-paid-by-dipr', [ReportsController::class, 'billsNotPaidByDIPR'])
+        ->name('/reports/bills-not-paid-by-dipr');
 });
 
-Route::post('getAmount', [AdvertisementController::class, 'getAmount'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('getAmount');
-
-
-// BILLS 
-Route::get('bills', [BillsController::class, 'index'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('bills');
-
-Route::post('bill-view-data', [BillsController::class, 'ViewContent'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('bills-view-data');
-
-Route::post('/bill-get-dept-letter-no', [BillsController::class, 'getDeptLetterNo']);
-
-Route::post('/bill-get-newspaper', [BillsController::class, 'getNewspaper'])
-    ->name('getNewspaper');
-
-Route::post('/get_bill_details', [BillsController::class, 'getBillDetails'])
-    ->name('getBillDetails');
-
-Route::post('/bill-store-data', [BillsController::class, 'StoreData'])
-    ->name('/bill/add');
-
-Route::post('/bill-edit-data', [BillsController::class, 'ShowData'])
-    ->name('editBill');
-
-Route::post('/bill-delete-data', [BillsController::class, 'DeleteData'])
-    ->name('deleteBill');
-
-Route::post('/bill-get-amount', [BillsController::class, 'getAmount']);
-
-// REPORT ROUTES
-
-Route::get('/reports/release_order/{id}', [ReportsController::class, 'releaseOrder'])
-    ->name('/reports/release_order');
-
-//issue register
-Route::get('/reports/issue-register', [ReportsController::class, 'indexIssueRegister'])
-    ->name('/reports/issue-register');
-
-Route::post('issue_register-view-data', [ReportsController::class, 'ViewIssueRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('issue_register-view-data');
-
-Route::post('get_issue_register', [ReportsController::class, 'GetIssueRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('get_issue_register');
-
-Route::get('/reports/print_issue_register/{from}/{to}', [ReportsController::class, 'printIssueRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('/reports/print_issue_register');
-
-Route::get('/reports/export_issue_register/{from}/{to}', [ReportsController::class, 'exportIssueRegisterToExcel'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('reports.export_issue_register');
-
-
-//BILLING register
-Route::get('/reports/billing-register', [ReportsController::class, 'indexBillingRegister'])
-    ->name('/reports/billing-register');
-
-Route::post('billing_register-view-data', [ReportsController::class, 'ViewBillingRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('billing_register-view-data');
-
-Route::post('get_billing_register', [ReportsController::class, 'GetBillingRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('get_billing_register');
-
-Route::get('/reports/print_billing_register/{from}/{to}', [ReportsController::class, 'printBillingRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('/reports/print_billing_register');
-
-Route::get('/reports/export_billing_register', [ReportsController::class, 'exportBillingRegisterToExcel'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('reports.export_billing_register');
-
-
-//BILLS not_paid_by_dipr
-
-Route::get('reports/not_paid_by_dipr', [ReportsController::class, 'indexNonDIPRRegister'])
-    ->name('reports/not_paid_by_dipr');
-
-Route::post('nonDIPR_register-view-data', [ReportsController::class, 'ViewNonDIPRRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('nonDIPR_register-view-data');
-
-Route::post('get_nonDIPR_register', [ReportsController::class, 'GetNonDIPRRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('get_nonDIPR_register');
-
-Route::get('/reports/print_nonDIPR_register/{from}/{to}', [ReportsController::class, 'printNonDIPRRegister'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('/reports/print_nonDIPR_register');
-
-Route::get('/reports/export_nonDIPR_register', [ReportsController::class, 'exportNonDIPRRegisterToExcel'])
-    ->middleware('cache.headers')
-    ->middleware('throttle')
-    ->name('reports.export_nonDIPR_register');
-
-//Forwarding Letter
-
-Route::get('/reports/forwarding_letter/{id}', [ReportsController::class, 'forwardingLetter'])
-    ->name('/reports/forwarding_letter');
-
-Route::get('/reports/detailed-expenditure-report', [ReportsController::class, 'detailedExpenditureReport'])
-    ->name('/reports/detailed-expenditure-report');
-
-Route::get('/reports/bills-not-paid-by-dipr', [ReportsController::class, 'billsNotPaidByDIPR'])
-    ->name('/reports/bills-not-paid-by-dipr');
-
-Route::get('/read', function () {
-    return DB::SELECT('SELECT * from public.users');
-});
-
-
-
-
-Auth::routes();
+// Route::get('/read', function () {
+//     return DB::SELECT('SELECT * from public.users');
+// });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

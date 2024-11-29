@@ -16,6 +16,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         th,
@@ -24,6 +25,13 @@
             border: 1px solid #000;
             word-wrap: break-word;
             font-size: 9pt;
+            page-break-inside: avoid;
+            /* Prevent page break inside table cells */
+        }
+
+        tr {
+            page-break-inside: avoid;
+            /* Prevent page break inside rows */
         }
 
         .long-text {
@@ -40,6 +48,7 @@
         }
     </style>
 </head>
+
 
 <body>
     <h3>Issue of Advertisement Register</h3>

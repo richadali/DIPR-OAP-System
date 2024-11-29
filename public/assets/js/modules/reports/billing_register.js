@@ -188,7 +188,7 @@ $(document).ready(function () {
             var newspaperName = bill.empanelled
                 ? bill.empanelled.news_name
                 : "N/A";
-            var releaseOrderDate = formatDate(advertisement.release_order_date);
+            var issue_date = formatDate(advertisement.issue_date);
             var billDate = formatDate(bill.bill_date);
 
             var newRow = $("<tr>").append(
@@ -198,14 +198,12 @@ $(document).ready(function () {
                 ),
                 $('<td class="text-center">').text(newspaperName),
                 $('<td class="text-center">').text(
-                    advertisement.release_order_no || "N/A"
+                    advertisement.mipr_no || "N/A"
                 ),
-                $('<td class="text-center">').text(releaseOrderDate || "N/A"),
+                $('<td class="text-center">').text(issue_date || "N/A"),
                 $('<td class="text-center">').text(bill.bill_no || "N/A"),
                 $('<td class="text-center">').text(billDate || "N/A"),
-                $('<td class="text-center">').text(
-                    advertisement.amount || "0.00"
-                )
+                $('<td class="text-center">').text(bill.total_amount || "0.00")
             );
 
             billingRegisterTable.row.add(newRow);

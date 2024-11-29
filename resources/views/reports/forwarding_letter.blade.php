@@ -61,10 +61,19 @@ use Carbon\Carbon;
             <td colspan="2"><br></td>
         </tr>
         <tr>
-            <td colspan="2">Memo No. M/Advt./Bi l l/.....<b>{{ $bill->bill_memo_no}}</b>....Dated Shillong. The…<b>
-                    {{Carbon::parse($bill->advertisement->issue_date)->format('jS F,
-                    Y') }}</b>……</td>
-        </tr>
+            <td colspan="2" style="width: 100%;">
+                <div style="width: 100%; position: relative;">
+                    <span style="float: left;">
+                        Memo No. M/Advt./Bi l l/<b>{{ $bill->bill_memo_no}}</b>
+                    </span>
+                    <span style="float: right;">
+                        Dated Shillong, the<b>
+                            {{Carbon::parse($bill->advertisement->issue_date)->format('jS F,
+                            Y') }}</b>
+                    </span>
+                </div>
+            </td>
+        </tr><br>
         <tr>
             <td colspan="2"><br>The under mentioned bill (s) with <b>MIPR No. {{ $bill->advertisement->mipr_no }}</b>
                 is/are
@@ -101,8 +110,8 @@ use Carbon\Carbon;
                     <tr>
                         <td>{{ $bill->bill_no }}</td>
                         <td>{{ $bill->bill_date->format('d-m-Y') }}</td>
-                        <td>{{ number_format($totalAmountWithGST, 0, '.', ',') }}</td>
-                        <td>{{ number_format(($totalAmountWithGST - floor($totalAmountWithGST)) * 100,
+                        <td>{{ number_format($totalAmount, 0, '.', ',') }}</td>
+                        <td>{{ number_format(($totalAmount - floor($totalAmount)) * 100,
                             0, '.', ',') }}</td>
                         <td>{{ $newspaperName }}</td>
                     </tr>
@@ -114,7 +123,7 @@ use Carbon\Carbon;
             <td colspan="2">
                 <br>(Rupees<b> {{$words}}</b>)
             </td>
-        </tr>
+        </tr><br>
         <tr>
             <td>
                 Copy forwarded for information to: -

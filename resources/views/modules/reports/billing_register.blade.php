@@ -163,11 +163,11 @@
                     <tr>
                       <th class="text-center" scope="col" width="3%">#</th>
                       <th class="text-center" scope="col" width="20%">Department</th>
-                      <th class="text-center" scope="col" width="15%">Isssued Organizations</th>
-                      <th class="text-center" scope="col" width="8%">RO No.</th>
-                      <th class="text-center" scope="col" width="5%">RO Date</th>
-                      <th class="text-center" scope="col" width="8%">Bill No</th>
-                      <th class="text-center" scope="col" width="8%">Bill Date</th>
+                      <th class="text-center" scope="col" width="20%">Isssued Organizations</th>
+                      <th class="text-center" scope="col" width="8%">MIPR No</th>
+                      <th class="text-center" scope="col" width="10%">Issued On</th>
+                      <th class="text-center" scope="col" width="10%">Bill No</th>
+                      <th class="text-center" scope="col" width="10%">Bill Date</th>
                       <th class="text-center" scope="col" width="10%">Amount</th>
                     </tr>
                   </thead>
