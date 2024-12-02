@@ -10,6 +10,21 @@ $(document).ready(function () {
         branding: false,
         quickbars_selection_toolbar:
             "bold italic | blockquote | alignleft aligncenter alignright alignjustify",
+        height: 300,
+    });
+
+    tinymce.init({
+        selector: "#message_copy_to",
+        menubar: false,
+        plugins: ["preview", "code", "wordcount"],
+        toolbar: [
+            "undo redo | bold italic underline strikethrough | fontselect fontsizeselect | alignleft aligncenter alignright alignjustify | outdent indent | numlist bullist",
+        ],
+        toolbar_sticky: true,
+        branding: false,
+        quickbars_selection_toolbar:
+            "bold italic | blockquote | alignleft aligncenter alignright alignjustify",
+        height: 200,
     });
 
     $(".select2").select2();
@@ -580,11 +595,19 @@ $(document).ready(function () {
             }
         });
 
+        // Store predefined content for subject 11
+        var predefinedMessage = `<p>Sir/Madam,</p>
+<p>With reference to the above, please find enclosed herewith the 'Message' of the Hon'ble Governor of Meghalaya on the occasion of the <em><strong>'Seng Kut Snem'</strong></em> to be published in your esteemed Newspaper on the <span style="text-decoration: underline;"><strong>23rd November, 2024</strong></span> <strong>in the FRONT PAGE positively in the</strong> <strong>size 10cms x 3columns.</strong></p>
+<p><span style="text-decoration: underline;"><em><strong>Please note that as per the Warrant of Precedence, the message of the Hon'ble Governor should be placed on top followed below by the messages of the Hon'ble Chief Minister and Hon'ble Speaker.</strong></em></span></p>
+<p>Bill may be addressed to Joint Secretary to the Governor of Meghalaya, Governor's Secretariat, Meghalaya, Shillong, through DIPR for arranging of payment.</p>`;
+
         subjectSelect.on("change", function () {
             if (subjectSelect.val() === "11") {
                 $("#messageContainer").show();
+                tinymce.get("message_body").setContent(predefinedMessage);
             } else {
                 $("#messageContainer").hide();
+                tinymce.get("message_body").setContent("");
             }
         });
 

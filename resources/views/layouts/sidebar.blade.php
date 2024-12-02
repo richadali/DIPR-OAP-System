@@ -22,7 +22,7 @@
         <i class="bi bi-person"></i>
         <span>Billing Section Management</span>
       </a>
-      
+
     </li>
     @endif
 
@@ -33,8 +33,18 @@
       </a>
       <ul id="master-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
-          <a href="{{route('/master-data/newspaper_types')}}">
-            <i class="bi bi-circle"></i><span>Media Types</span>
+          <a href="{{route('/master-data/mipr-no')}}">
+            <i class="bi bi-circle"></i><span>MIPR No</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{route('/master-data/mipr-file-no')}}">
+            <i class="bi bi-circle"></i><span>MIPR File No</span>
+          </a>
+        </li>
+        <li>
+          <a href="{{route('/master-data/departments')}}">
+            <i class="bi bi-circle"></i><span>Departments</span>
           </a>
         </li>
         <li>
@@ -43,20 +53,23 @@
           </a>
         </li>
         <li>
-          <a href="{{route('/master-data/subject')}}">
-            <i class="bi bi-circle"></i><span>Subject of Advertisement</span>
+          <a href="{{route('/master-data/rates-for-advertisements')}}">
+            <i class="bi bi-circle"></i><span>Rates of Advertisement</span>
           </a>
         </li>
-
+        <li>
+          <a href="{{route('/master-data/newspaper_types')}}">
+            <i class="bi bi-circle"></i><span>Media Types</span>
+          </a>
+        </li>
         <li>
           <a href="{{ route('/master-data/advertisement-types') }}">
             <i class="bi bi-circle"></i><span>Advertisement Types</span>
           </a>
         </li>
-
         <li>
-          <a href="{{route('/master-data/rates-for-advertisements')}}">
-            <i class="bi bi-circle"></i><span>Rates for Advertisement</span>
+          <a href="{{route('/master-data/subject')}}">
+            <i class="bi bi-circle"></i><span>Subject of Advertisement</span>
           </a>
         </li>
         <li>
@@ -70,23 +83,8 @@
           </a>
         </li>
         <li>
-          <a href="{{route('/master-data/mipr-no')}}">
-            <i class="bi bi-circle"></i><span>MIPR No</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{route('/master-data/mipr-file-no')}}">
-            <i class="bi bi-circle"></i><span>MIPR File No</span>
-          </a>
-        </li>
-        <li>
           <a href="{{route('/master-data/department-category')}}">
             <i class="bi bi-circle"></i><span>Department Categories</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{route('/master-data/departments')}}">
-            <i class="bi bi-circle"></i><span>Departments</span>
           </a>
         </li>
         <li>

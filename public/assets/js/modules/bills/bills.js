@@ -121,21 +121,6 @@ $(document).ready(function () {
         });
     }
 
-    function getAmount() {
-        var ad_id = $("#ad_id").val();
-
-        $.ajax({
-            type: "POST",
-            url: "/bill-get-amount",
-            data: {
-                ad_id: ad_id,
-            },
-            success: function (response) {
-                $("#amount").val(response.amount);
-            },
-        });
-    }
-
     function getNewspaper() {
         var ad_id = $("#ad_id").val();
 
@@ -210,7 +195,93 @@ $(document).ready(function () {
     amountInput.addEventListener("input", calculateTotalAmount);
     gstRateSelect.addEventListener("change", calculateTotalAmount);
 
+    const modalAmountInput = document.getElementById("modal_amount");
+    const modalGstRateSelect = document.getElementById("modal_gst_rate");
+    const modalTotalAmountInput = document.getElementById("modal_total_amount");
+
+    // Function to calculate the total amount (including GST) in the modal
+    function calculateModalTotalAmount() {
+        const modalAmount = parseFloat(modalAmountInput.value) || 0; // Base amount before GST
+        const modalGstRate = modalGstRateSelect.value; // Selected GST rate
+
+        let modalTotalAmount = modalAmount;
+        if (modalGstRate && modalGstRate !== "NA") {
+            const gstPercentage = parseFloat(modalGstRate) || 0;
+            modalTotalAmount += (modalAmount * gstPercentage) / 100; // Add GST to the base amount
+        }
+
+        modalTotalAmountInput.value = modalTotalAmount.toFixed(2); // Update total amount field
+    }
+
+    // Add event listeners to the modal fields for changes
+    modalAmountInput.addEventListener("input", calculateModalTotalAmount);
+    modalGstRateSelect.addEventListener("change", calculateModalTotalAmount);
+
     $("#bill-form").on("submit", function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            type: "POST",
+            url: "/bill-store-data",
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                console.log(data);
+                if (data["flag"] == "Y" || data["flag"] == "YY") {
+                    //Succcess for creation of new user
+                    {
+                        if (data["flag"] == "Y") {
+                            $(".table_msg1").show();
+                            $(".table_msg1").delay(2000).fadeOut();
+                            // $('#table-form').trigger("reset");
+                        } else if (data["flag"] == "YY") {
+                            $(".table_msg5").show();
+                            $(".table_msg5").delay(2000).fadeOut();
+                            // $('#table-form').trigger("reset");
+                        }
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                } else if (data["flag"] == "N") {
+                    //Error while creation of new user
+                    $(".table_msg2").show();
+                    $(".table_msg2").delay(2000).fadeOut();
+                    $("#table-form").trigger("reset");
+                } else if (data["flag"] == "VE") {
+                    //Validation Errors
+                    $(".table_msg2").show();
+                    $(".table_msg2").delay(2000).fadeOut();
+                    $("#table-form").trigger("reset");
+                } else if (data["flag"] == "NN") {
+                    //Error while editing an Ad
+                    $(".table_msg6").show();
+                    $(".table_msg6").delay(2000).fadeOut();
+                    $("#table-form").trigger("reset");
+                }
+            },
+            error: function (xhr, status, error) {
+                if (xhr.status === 422) {
+                    var errors = xhr.responseJSON.errors;
+                    $.each(errors, function (field, messages) {
+                        var fieldElement = $('[name="' + field + '"]');
+                        var errorMessage = $(
+                            '<span class="error">' + messages[0] + "</span>"
+                        );
+                        fieldElement.after(errorMessage);
+                        errorMessage.css({
+                            color: "red",
+                            fontSize: "12px",
+                        });
+                    });
+                }
+            },
+        });
+    });
+
+    $("#edit-bill-form").on("submit", function (e) {
         e.preventDefault();
         var formData = new FormData(this);
         $.ajax({
@@ -277,7 +348,7 @@ $(document).ready(function () {
     $(document).on("click", ".bill-edit", function (e) {
         e.preventDefault();
         var id = $(this).data("id");
-        var value;
+
         $.ajax({
             type: "POST",
             url: "/bill-edit-data",
@@ -285,21 +356,41 @@ $(document).ready(function () {
             cache: false,
             success: function (data) {
                 console.log(data);
-                $("#bill-form").trigger("reset");
-                $("#id").val(data[0]["id"]);
-                $("#bill_no").val(data[0]["bill_no"]);
-                $("#empanelled_id")
-                    .val(data[0]["empanelled_id"])
-                    .trigger("change");
-                $("#bill_date").val(formatDateFromDB(data[0]["bill_date"]));
-                $("#ad_id")
-                    .val(data[0]["advertisement"]["id"])
-                    .trigger("change");
-                $("#bill_memo_no").val(data[0]["bill_memo_no"]);
-                $("#gst_rate").val(data[0]["gst_rate"]);
-                $("#amount").val(data[0]["advertisement"]["amount"]);
-                calculateTotalAmount();
-                $("#users-tab").tab("show");
+
+                // Reset any previous form data
+                $("#edit-bill-form").trigger("reset");
+
+                // Fill modal with bill details (excluding reference_no and empanelled)
+                $("#modal_id").val(data[0]["id"]);
+                document.getElementById("modal_ad_id_display").textContent =
+                    data[0]["advertisement"]["ref_no"];
+                $("#modal_ad_id").val(data[0]["advertisement"]["ref_no"]);
+                $("#modal_bill_no").val(data[0]["bill_no"]);
+                $("#modal_bill_date").val(
+                    formatDateFromDB(data[0]["bill_date"])
+                );
+
+                var gstRate = data[0]["gst_rate"];
+                if (gstRate === null || gstRate === undefined) {
+                    gstRate = "NA";
+                }
+                $("#modal_gst_rate").val(gstRate);
+
+                // Populate total amount
+                var totalAmount = parseFloat(data[0]["total_amount"]);
+                $("#modal_total_amount").val(totalAmount.toFixed(2));
+
+                // Calculate and populate amount before GST if GST rate is not NA
+                if (gstRate !== "NA") {
+                    gstRate = parseFloat(gstRate);
+                    var amountBeforeGST = totalAmount / (1 + gstRate / 100);
+                    $("#modal_amount").val(amountBeforeGST.toFixed(2)); // rounding to 2 decimal places
+                } else {
+                    $("#modal_amount").val(totalAmount.toFixed(2)); // If GST is NA, set amount equal to total amount
+                }
+
+                $("#modal_bill_memo_no").val(data[0]["bill_memo_no"]);
+                $("#editBillModal").modal("show");
             },
         });
     });
@@ -342,6 +433,14 @@ $(document).ready(function () {
 //---------------- VALIDATING FIELDS
 
 $("#amount").on("input", function () {
+    $(this).val(
+        $(this)
+            .val()
+            .replace(/[^0-9.]/g, "")
+    );
+});
+
+$("#modal_amount").on("input", function () {
     $(this).val(
         $(this)
             .val()

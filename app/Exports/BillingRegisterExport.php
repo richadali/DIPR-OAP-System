@@ -137,10 +137,6 @@ class BillingRegisterExport implements FromCollection, WithHeadings, WithMapping
             ->setVertical(Alignment::VERTICAL_CENTER)
             ->setWrapText(true);
 
-        // Left-align the "Branch of Department" column (column C)
-        $sheet->getStyle('C4:C' . ($this->rowCount + 3)) // From row 4 (after heading) to the last row
-            ->getAlignment()
-            ->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
         // Right align the "Amount" column (column J)
         $sheet->getStyle('J4:J' . ($this->rowCount + 3)) // From row 4 (after heading) to the last row

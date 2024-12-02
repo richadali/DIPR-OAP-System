@@ -92,9 +92,8 @@
 
                                     <div class="col-md-6">
                                         <label for="dept_name" class="form-label"><b>Department Name</b></label>
-                                        <select class="form-control" id="department" name="dept_name" required>
-                                            <option value="" disabled selected>Select Department</option>
-                                        </select>
+                                        <input type="text" class="form-control" id="dept_name" name="dept_name"
+                                            required>
                                     </div>
 
                                     <br>

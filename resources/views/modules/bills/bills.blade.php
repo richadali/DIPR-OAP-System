@@ -41,7 +41,7 @@
               <li class="nav-item flex-fill" role="presentation">
                 <button class="nav-link w-100" id="users-tab" data-bs-toggle="tab"
                   data-bs-target="#bordered-justified-foods" type="button" role="tab" aria-controls="profile"
-                  aria-selected="false"><i class="ri-file-add-line"></i> &nbsp; Create/Edit Bill</button>
+                  aria-selected="false"><i class="ri-file-add-line"></i> &nbsp; Create Bill</button>
               </li>
             </ul>
             <div class="tab-content pt-2" id="borderedTabJustifiedContent">
@@ -246,8 +246,62 @@
           </div>
         </div>
       </div>
-
   </section>
+  <!-- Modal for editing Bill Details -->
+  <div class="modal fade" id="editBillModal" tabindex="-1" aria-labelledby="editBillModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editBillModalLabel"><b>Edit Bill Details</b></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Form fields for editing -->
+          <form id="edit-bill-form">
+            <input type="hidden" name="id" id="modal_id">
+            <input type="hidden" name="ad_id" id="modal_ad_id">
+            <b>Reference No: <span id="modal_ad_id_display"></b><br><br>
+            <div class="mb-3">
+              <label for="modal_bill_no" class="form-label"><b>Bill No</b></label>
+              <input type="text" class="form-control" id="modal_bill_no" name="bill_no" required>
+            </div>
+            <div class="mb-3">
+              <label for="modal_bill_date" class="form-label"><b>Bill Date</b></label>
+              <input type="text" class="form-control" id="modal_bill_date" name="bill_date" required>
+            </div>
+            <div class="mb-3">
+              <label for="modal_amount" class="form-label"><b>Amount</b></label>
+              <input type="text" class="form-control" id="modal_amount" name="amount" required>
+            </div>
+            <div class="mb-3">
+              <label for="modal_gst_rate" class="form-label"><b>GST Rate</b></label>
+              <select name="gst_rate" id="modal_gst_rate" class="form-control" required>
+                <option value="" selected disabled>Select GST Rate</option>
+                <option value="NA">NA</option>
+                @foreach($gstRates as $rate)
+                <option value="{{ $rate->rate }}">{{ $rate->rate }}%</option>
+                @endforeach
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="modal_total_amount" class="form-label"><b>Total Amount</b></label>
+              <input type="text" class="form-control readonly-input" id="modal_total_amount" name="total_amount"
+                readonly required>
+            </div>
+            <div class="mb-3">
+              <label for="modal_bill_memo_no" class="form-label"><b>Bill Memo No</b></label>
+              <input type="text" class="form-control" id="modal_bill_memo_no" name="bill_memo_no" required>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
       class="bi bi-arrow-up-short"></i></a>
 </main>

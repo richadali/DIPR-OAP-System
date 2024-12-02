@@ -120,11 +120,11 @@ class BillsController extends Controller
                         DB::beginTransaction();
 
                         Bill::whereId($request->id)->update([
-                            'bill_no' => ($request->bill_no),
-                            'bill_date' => ($request->bill_date),
-                            'gst_rate' => ($request->gst_rate),
-                            'total_amount' => ($request->total_amount),
-                            'bill_memo_no' => ($request->bill_memo_no),
+                            'bill_no' => $request->bill_no,
+                            'bill_date' => $request->bill_date,
+                            'gst_rate' => $request->gst_rate === 'NA' ? null : $request->gst_rate,
+                            'total_amount' => $request->total_amount,
+                            'bill_memo_no' => $request->bill_memo_no,
                             'user_id' => $user->id
                         ]);
                         DB::commit();
@@ -171,7 +171,7 @@ class BillsController extends Controller
     {
         $user = Auth::user();
         $bills = Bill::with(['advertisement' => function ($query) {
-            $query->select('id', 'amount', 'ref_no');
+            $query->select('id', 'ref_no');
         }])
             ->where('bills.id', '=', $request->id)
             // ->where('bills.user_id', $user->id)

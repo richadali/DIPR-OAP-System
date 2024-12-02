@@ -138,7 +138,7 @@ class AdvertisementController extends Controller
                             DB::rollback();
                             return response()->json(["flag" => "NN"]);
                         }
-                    } else { // Create new advertisement
+                    } else {
                         $advertisement = new Advertisement();
                         $advertisement->user_id = auth()->user()->id;
                         $advertisement->department_id = $request->department;
