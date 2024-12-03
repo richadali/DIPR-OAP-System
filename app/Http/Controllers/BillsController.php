@@ -9,6 +9,7 @@ use App\Models\Bill;
 use App\Models\GstRate;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -121,7 +122,7 @@ class BillsController extends Controller
 
                         Bill::whereId($request->id)->update([
                             'bill_no' => $request->bill_no,
-                            'bill_date' => $request->bill_date,
+                            'bill_date' => Carbon::createFromFormat('d-m-Y', $request->bill_date)->format('Y-m-d'),
                             'gst_rate' => $request->gst_rate === 'NA' ? null : $request->gst_rate,
                             'total_amount' => $request->total_amount,
                             'bill_memo_no' => $request->bill_memo_no,
@@ -141,7 +142,7 @@ class BillsController extends Controller
                     DB::beginTransaction();
                     $bill = new Bill();
                     $bill->bill_no = $request->bill_no;
-                    $bill->bill_date = $request->bill_date;
+                    $bill->bill_date = Carbon::createFromFormat('d-m-Y', $request->bill_date)->format('Y-m-d');
                     $bill->ad_id = $request->ad_id;
                     $bill->empanelled_id = $request->empanelled_id;
                     $bill->bill_memo_no = $request->bill_memo_no;

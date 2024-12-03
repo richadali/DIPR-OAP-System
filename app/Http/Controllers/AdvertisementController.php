@@ -99,10 +99,10 @@ class AdvertisementController extends Controller
                         if ($sql_count > 0) {
                             // Update existing advertisement record
                             Advertisement::whereId($request->id)->update([
-                                'issue_date' => $request->issue_date,
+                                'issue_date' => Carbon::createFromFormat('d-m-Y', $request->issue_date)->format('Y-m-d'),
                                 'department_id' => $request->department,
                                 'ref_no' => $request->ref_no,
-                                'ref_date' => $request->ref_date,
+                                'ref_date' => Carbon::createFromFormat('d-m-Y', $request->ref_date)->format('Y-m-d'),
                                 'remarks' => $request->remarks,
                                 'advertisement_type_id' => $request->advertisementType,
                                 'subject_id' => $request->subject,
@@ -124,7 +124,7 @@ class AdvertisementController extends Controller
                                 $assignedNewsRecord = new AssignedNews();
                                 $assignedNewsRecord->advertisement_id = $advertisement->id;
                                 $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id'];
-                                $assignedNewsRecord->positively_on = $assignedNews['positively'];
+                                $assignedNewsRecord->positively_on = Carbon::createFromFormat('d-m-Y', $assignedNews['positively'])->format('Y-m-d');
                                 $assignedNewsRecord->cm = $assignedNews['cm'] ?? null;
                                 $assignedNewsRecord->columns = $assignedNews['columns'] ?? null;
                                 $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null;
@@ -142,9 +142,9 @@ class AdvertisementController extends Controller
                         $advertisement = new Advertisement();
                         $advertisement->user_id = auth()->user()->id;
                         $advertisement->department_id = $request->department;
-                        $advertisement->issue_date = $request->issue_date;
+                        $advertisement->issue_date = Carbon::createFromFormat('d-m-Y', $request->issue_date)->format('Y-m-d');
                         $advertisement->ref_no = $request->ref_no;
-                        $advertisement->ref_date = $request->ref_date;
+                        $advertisement->ref_date = Carbon::createFromFormat('d-m-Y', $request->ref_date)->format('Y-m-d');
                         $advertisement->remarks = $request->remarks;
                         $advertisement->advertisement_type_id = $request->advertisementType;
                         $advertisement->subject_id = $request->subject;
@@ -162,7 +162,7 @@ class AdvertisementController extends Controller
                             $assignedNewsRecord = new AssignedNews();
                             $assignedNewsRecord->advertisement_id = $advertisement->id;
                             $assignedNewsRecord->empanelled_id = $assignedNews['newspaper_id'];
-                            $assignedNewsRecord->positively_on = $assignedNews['positively'];
+                            $assignedNewsRecord->positively_on = Carbon::createFromFormat('d-m-Y', $assignedNews['positively'])->format('Y-m-d');
                             $assignedNewsRecord->cm = $assignedNews['cm'] ?? null;
                             $assignedNewsRecord->columns = $assignedNews['columns'] ?? null;
                             $assignedNewsRecord->seconds = $assignedNews['seconds'] ?? null;
