@@ -188,8 +188,8 @@
         <div class="col-lg-12">
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Newspapers Count</h5>
-              <div id="newspaperChart" style="height: 400px;"></div>
+              <h5 class="card-title">Organization Count</h5>
+              <div id="newspaperChart" style="height: 500px;"></div>
             </div>
           </div>
         </div>
@@ -209,10 +209,10 @@
     const options = {
       chart: {
         type: 'bar',
-        height: 500, // Adjust the height to accommodate more bars
+        height: 450, // Adjust the height to accommodate more bars
       },
       series: [{
-        name: 'Newspapers Count',
+        name: 'Organization Count',
         data: newspaperData,
       }],
       xaxis: {

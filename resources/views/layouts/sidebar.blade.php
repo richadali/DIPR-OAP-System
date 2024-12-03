@@ -96,21 +96,21 @@
     </li>
     <li class="nav-item">
       <a class="nav-link collapsed" href="{{route('advertisements')}}">
-        <i class="bi bi-person"></i>
+        <i class="bi bi-badge-ad"></i>
         <span>Advertisements</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" href="{{route('bills')}}">
-        <i class="bi bi-person"></i>
+        <i class="bi bi-currency-rupee"></i>
         <span>Bills</span>
       </a>
     </li>
 
     <li class="nav-item">
       <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i><span>Reports </span><i class="bi bi-chevron-down ms-auto"></i>
+        <i class="bi bi-file-text"></i><span>Reports </span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="reports-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
         <li>
