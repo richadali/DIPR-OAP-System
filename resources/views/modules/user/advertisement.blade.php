@@ -431,13 +431,13 @@
                     <div class="mb-3">
                       <label for="messageSubject" class="form-label"><b>Message Subject</b></label>
                       <input type="text" name="message_subject" id="message_subject" class="form-control"
-                        placeholder="Enter message subject" required>
+                        placeholder="Enter message subject">
                     </div>
 
                     <div class="mb-3">
                       <label for="messageBody" class="form-label"><b>Message Body</b></label>
                       <textarea name="message_body" id="message_body" class="form-control" rows="6"
-                        placeholder="Enter message body" required></textarea>
+                        placeholder="Enter message body"></textarea>
                     </div>
 
                     <div class="mb-3">
