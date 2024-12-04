@@ -217,7 +217,7 @@ class AdvertisementController extends Controller
         return response()->json($advertisement);
     }
 
-    public function DeleteData(Request $request)
+    public function CancelAd(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -249,6 +249,50 @@ class AdvertisementController extends Controller
             return response()->json(["flag" => "N", "message" => $e->getMessage()]);
         }
     }
+
+
+    public function DeleteData(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Find the advertisement
+            $advertisement = Advertisement::find($request->id);
+
+            if (!$advertisement) {
+                return response()->json(["flag" => "N", "message" => "Advertisement not found."]);
+            }
+
+            // Check if the advertisement has bills associated
+            $hasBill = DB::table('bills')
+                ->where('ad_id', $advertisement->id)
+                ->exists();
+
+            if ($hasBill) {
+                Log::info("Advertisement ID {$advertisement->id} has associated bills and cannot be deleted.");
+                return response()->json([
+                    'flag' => 'N',
+                    'message' => 'The Advertisement has Bills associated with it. It cannot be deleted!'
+                ]);
+            }
+
+            // Delete associated assigned news (adjust table name as per your database)
+            DB::table('assigned_news')
+                ->where('advertisement_id', $advertisement->id)
+                ->delete();
+
+            // Permanently delete the advertisement
+            $advertisement->delete();
+
+            DB::commit();
+
+            return response()->json(["flag" => "Y", "message" => "Advertisement and associated data deleted successfully."]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json(["flag" => "N", "message" => $e->getMessage()]);
+        }
+    }
+
 
 
 

@@ -439,7 +439,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/advertisement-edit-data', [AdvertisementController::class, 'ShowData'])
         ->name('editAdvertisement');
 
-    Route::post('/advertisement-delete-data', [AdvertisementController::class, 'DeleteData'])
+    Route::post('/advertisement-cancel', [AdvertisementController::class, 'CancelAd'])
+        ->name('deleteAdvertisement');
+
+    Route::post('/advertisement-delete', [AdvertisementController::class, 'DeleteData'])
         ->name('deleteAdvertisement');
 
     Route::post('/get-newspapers', [AdvertisementController::class, 'getNewspapers'])

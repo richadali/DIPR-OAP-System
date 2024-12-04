@@ -97,13 +97,16 @@ $(document).ready(function () {
                           '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>'
                         : '<span style="color:darkblue;" data-id="' +
                           advertisement.id +
-                          '" class="icon ri-edit-2-fill advertisement-edit"></span> &nbsp; &nbsp;' +
+                          '" class="icon ri-edit-2-fill advertisement-edit" title="Edit advertisement"></span> &nbsp; &nbsp;' +
                           '<span style="color:red;font-size:20px;" data-id="' +
                           advertisement.id +
-                          '" class="icon ri-close-line advertisement-delete"></span> &nbsp; &nbsp;' +
+                          '" class="icon ri-close-line advertisement-delete" title="Cancel Advertisement"></span> &nbsp; &nbsp;' +
                           '<span style="color:green;font-size:20px;" data-id="' +
                           advertisement.id +
-                          '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>') +
+                          '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>' +
+                          '&nbsp; &nbsp;<span style="color:darkred;font-size:20px;" data-id="' +
+                          advertisement.id +
+                          '" class="icon ri-delete-bin-6-line advertisement-delete" title="Delete Permanently"></span>') +
                     "</td>" +
                     "<td align=center>" +
                     (advertisement.status === "Cancelled"
@@ -429,7 +432,7 @@ $(document).ready(function () {
         return formattedDate;
     }
 
-    $(document).on("click", ".advertisement-delete", function (e) {
+    $(document).on("click", ".advertisement-cancel", function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         Swal.fire({
@@ -449,7 +452,7 @@ $(document).ready(function () {
             if (result.isConfirmed) {
                 $.ajax({
                     type: "POST",
-                    url: "/advertisement-delete-data",
+                    url: "/advertisement-cancel",
                     data: {
                         id: id,
                         cancellation_reason: result.value,
@@ -471,7 +474,7 @@ $(document).ready(function () {
                         } else {
                             Swal.fire({
                                 title: "Error!",
-                                text: "The Advertisement has a Bill associated with it. It cannot be deleted!",
+                                text: "The Advertisement has a Bill associated with it. It cannot be cancelled!",
                                 icon: "error",
                             });
                         }
@@ -642,6 +645,56 @@ document.addEventListener("DOMContentLoaded", function () {
             error: function (xhr, status, error) {
                 console.error("Error updating status:", error);
             },
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    $(document).on("click", ".advertisement-delete", function () {
+        const advertisementId = $(this).data("id");
+
+        // Show SweetAlert confirmation modal
+        Swal.fire({
+            title: "Are you sure?",
+            text: "The advertisement and the related data will be deleted permanently.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceed with the deletion if confirmed
+                $.ajax({
+                    url: "/advertisement-delete",
+                    type: "POST",
+                    data: {
+                        id: advertisementId,
+                        _token: $('meta[name="csrf-token"]').attr("content"),
+                    },
+                    success: function (response) {
+                        if (response.flag === "Y") {
+                            Swal.fire(
+                                "Deleted!",
+                                "The advertisement has been deleted.",
+                                "success"
+                            ).then(() => {
+                                location.reload(); // Refresh the table after confirmation
+                            });
+                        } else {
+                            Swal.fire("Error!", response.message, "error");
+                        }
+                    },
+                    error: function () {
+                        Swal.fire(
+                            "Error!",
+                            "An error occurred while deleting the advertisement.",
+                            "error"
+                        );
+                    },
+                });
+            }
         });
     });
 });
