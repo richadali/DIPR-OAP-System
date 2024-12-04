@@ -357,7 +357,7 @@ use Carbon\Carbon;
                 </td>
             </tr>
             <tr>
-                <td style="width: 30%; vertical-align: top;">
+                <td style="width: 40%; vertical-align: top;">
                     @php
                     $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
                     @endphp
@@ -372,7 +372,7 @@ use Carbon\Carbon;
                         @endforeach
                         <div class="center-box" style="margin-top: 5px;">
                             <div class="inner-box">
-                                <span style="font-size: 12px;"><b>To be published positively on <br> {{
+                                <span style="font-size: 10px;"><b>To be published positively on <br> {{
                                         Carbon::parse($date)->format('jS F,
                                         Y') }}</br></span>
                             </div>
@@ -388,7 +388,7 @@ use Carbon\Carbon;
                     @endif
                 </td>
 
-                <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                <td style="width: 60%; vertical-align: top; padding-left: 10px;">
                     <b>THE ADVERTISEMENT SHOULD BE PUBLISHED AS FOLLOWS:</b><br><br>
                     (a) The Headline or heading of advertisement should be printed in type face size not exceeding 14
                     points.<br><br>
