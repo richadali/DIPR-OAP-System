@@ -50,7 +50,7 @@ use Carbon\Carbon;
             color: white;
             padding: 5px;
             border: 1px solid #000;
-            width: 160px;
+            width: 180px;
             text-align: center;
         }
 
@@ -72,7 +72,7 @@ use Carbon\Carbon;
             display: inline-block;
             padding: 5px;
             border: 1px solid #000;
-            width: 160px;
+            width: 180px;
         }
     </style>
 </head>
@@ -322,7 +322,7 @@ use Carbon\Carbon;
     @endforeach
 
 
-    {{-- Office & Department Copy --}}
+    {{-- Office & Department Copy (Print)--}}
     @for ($i = 0; $i < 2; $i++) <body>
         <table>
             <tr>
@@ -372,7 +372,7 @@ use Carbon\Carbon;
                         @endforeach
                         <div class="center-box" style="margin-top: 5px;">
                             <div class="inner-box">
-                                <span style="font-size: 10px;"><b>To be published positively on <br> {{
+                                <span style="font-size: 12px;"><b>To be published positively on <br> {{
                                         Carbon::parse($date)->format('jS F,
                                         Y') }}</br></span>
                             </div>
@@ -636,7 +636,7 @@ use Carbon\Carbon;
                     </td>
                 </tr>
                 <tr>
-                    <td style="width: 30%; vertical-align: top;">
+                    <td style="width: 40%; vertical-align: top;">
                         @php
                         $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
                         @endphp
@@ -667,7 +667,7 @@ use Carbon\Carbon;
                         @endif
                     </td>
 
-                    <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                    <td style="width: 60%; vertical-align: top; padding-left: 10px;">
                         <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
                         (a) The Advertisement for Electronic Media should be broadcasted for
                         ___ seconds<br>
@@ -786,15 +786,44 @@ use Carbon\Carbon;
                             <div class="center-box" style="margin-top:20px">
                                 <div class="inner-box">
                                     <b>To be broadcasted <br>Positively on<br>
-                                        @foreach($newsGroup->pluck('positively_on') as $date)
-                                        {{ \Carbon\Carbon::parse($date)->format('jS F, Y') }}
-                                        @if(!$loop->last), @endif
-                                        @endforeach
+                                        @php
+                                        $dates = $newsGroup->pluck('positively_on')->sort(); // Ensure dates are sorted
+                                        $formattedDates = $dates->map(function($date) {
+                                        return \Carbon\Carbon::parse($date)->format('jS F, Y');
+                                        });
+
+                                        // Check if dates are consecutive
+                                        $areConsecutive = true;
+                                        if ($dates->count() > 1) {
+                                        $datesArray = $dates->map(fn($date) => \Carbon\Carbon::parse($date))->values();
+                                        foreach ($datesArray as $index => $date) {
+                                        if ($index > 0 && !$date->isSameDay($datesArray[$index - 1]->copy()->addDay()))
+                                        {
+                                        $areConsecutive = false;
+                                        break;
+                                        }
+                                        }
+                                        }
+                                        @endphp
+                                        {!! $formattedDates->implode(',<br>') !!}
                                     </b>
-                                    <br><b>(@Rs.{{
-                                        $amount}}/- inclusive of all Taxes)</b>
+                                    <br>
+                                    <b>
+                                        @if ($dates->count() > 1)
+                                        @if ($areConsecutive)
+                                        (@Rs.{{ $amount }} per day and 25% for the following days inclusive of all
+                                        Taxes)
+                                        @else
+                                        (@Rs.{{ $amount }} per day inclusive of all Taxes)
+                                        @endif
+                                        @else
+                                        (@Rs.{{ $amount }} inclusive of all Taxes)
+                                        @endif
+                                    </b>
                                 </div>
                             </div>
+
+
                             @if(!empty($advertisement->remarks))
                             <div class="remarks-box">
                                 <div class="remarks-text">
@@ -915,7 +944,7 @@ use Carbon\Carbon;
                         </td>
                     </tr>
                     <tr>
-                        <td style="width: 30%; vertical-align: top;">
+                        <td style="width: 40%; vertical-align: top;">
                             @php
                             $groupedNews = $advertisement->assigned_news->groupBy('positively_on');
                             @endphp
@@ -945,7 +974,7 @@ use Carbon\Carbon;
                             @endif
                         </td>
 
-                        <td style="width: 70%; vertical-align: top; padding-left: 10px;">
+                        <td style="width: 60%; vertical-align: top; padding-left: 10px;">
                             <b>THE ADVERTISEMENT SHOULD BE BROADCASTED AS FOLLOWS:</b><br><br>
                             (a) The Advertisement should be uploaded/broadcasted by the
                             <b><i><u>Electronic Media</u></i></b> in type face size not exceeding 14 points.<br>
