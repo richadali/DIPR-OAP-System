@@ -322,7 +322,7 @@ use Carbon\Carbon;
     @endforeach
 
 
-    {{-- Office & Department Copy (Print)--}}
+    {{-- Office & Department Copy --}}
     @for ($i = 0; $i < 2; $i++) <body>
         <table>
             <tr>
