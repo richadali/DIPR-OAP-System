@@ -94,13 +94,16 @@ $(document).ready(function () {
                     (advertisement.status === "Cancelled"
                         ? '&nbsp;<span style="color:green;font-size:20px;" data-id="' +
                           advertisement.id +
-                          '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>'
+                          '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>' +
+                          '&nbsp; &nbsp;<span style="color:darkred;font-size:20px;" data-id="' +
+                          advertisement.id +
+                          '" class="icon ri-delete-bin-6-line advertisement-delete" title="Delete Permanently"></span>'
                         : '<span style="color:darkblue;" data-id="' +
                           advertisement.id +
                           '" class="icon ri-edit-2-fill advertisement-edit" title="Edit advertisement"></span> &nbsp; &nbsp;' +
                           '<span style="color:red;font-size:20px;" data-id="' +
                           advertisement.id +
-                          '" class="icon ri-close-line advertisement-delete" title="Cancel Advertisement"></span> &nbsp; &nbsp;' +
+                          '" class="icon ri-close-line advertisement-cancel" title="Cancel Advertisement"></span> &nbsp; &nbsp;' +
                           '<span style="color:green;font-size:20px;" data-id="' +
                           advertisement.id +
                           '" class="icon ri-eye-fill advertisement-view" title="View Details"></span>' +
@@ -599,17 +602,21 @@ $(document).ready(function () {
         });
 
         // Store predefined content for subject 11
+        var predefinedSubject =
+            "Message/Greeting of the Hon'ble Governor of Meghalaya on the occassion of the 'Seng Kut Snem'.";
         var predefinedMessage = `<p>Sir/Madam,</p>
-<p>With reference to the above, please find enclosed herewith the 'Message' of the Hon'ble Governor of Meghalaya on the occasion of the <em><strong>'Seng Kut Snem'</strong></em> to be published in your esteemed Newspaper on the <span style="text-decoration: underline;"><strong>23rd November, 2024</strong></span> <strong>in the FRONT PAGE positively in the</strong> <strong>size 10cms x 3columns.</strong></p>
-<p><span style="text-decoration: underline;"><em><strong>Please note that as per the Warrant of Precedence, the message of the Hon'ble Governor should be placed on top followed below by the messages of the Hon'ble Chief Minister and Hon'ble Speaker.</strong></em></span></p>
-<p>Bill may be addressed to Joint Secretary to the Governor of Meghalaya, Governor's Secretariat, Meghalaya, Shillong, through DIPR for arranging of payment.</p>`;
+        <p>With reference to the above, please find enclosed herewith the 'Message' of the Hon'ble Governor of Meghalaya on the occasion of the <em><strong>'Seng Kut Snem'</strong></em> to be published in your esteemed Newspaper on the <span style="text-decoration: underline;"><strong>23rd November, 2024</strong></span> <strong>in the FRONT PAGE positively in the</strong> <strong>size 10cms x 3columns.</strong></p>
+        <p><span style="text-decoration: underline;"><em><strong>Please note that as per the Warrant of Precedence, the message of the Hon'ble Governor should be placed on top followed below by the messages of the Hon'ble Chief Minister and Hon'ble Speaker.</strong></em></span></p>
+        <p>Bill may be addressed to Joint Secretary to the Governor of Meghalaya, Governor's Secretariat, Meghalaya, Shillong, through DIPR for arranging of payment.</p>`;
 
         subjectSelect.on("change", function () {
             if (subjectSelect.val() === "11") {
                 $("#messageContainer").show();
+                $("#message_subject").val(predefinedSubject);
                 tinymce.get("message_body").setContent(predefinedMessage);
             } else {
                 $("#messageContainer").hide();
+                $("#message_subject").val("");
                 tinymce.get("message_body").setContent("");
             }
         });
